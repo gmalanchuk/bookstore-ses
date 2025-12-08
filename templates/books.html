@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>All Books</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <h1>Books</h1>
+    <div class="book-list">
+    {% for book in books %}
+        <div class="book-card">
+            <h2><a href="/books/{{ book.id }}">{{ book.title }}</a></h2>
+            <p>Author ID: {{ book.author_id }}</p>
+            <p>Price: ${{ book.price }}</p>
+        </div>
+    {% endfor %}
+    </div>
+</body>
+</html>

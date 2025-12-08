@@ -1,0 +1,52 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f8f8;
+    margin: 0;
+    padding: 20px;
+}
+
+h1 {
+    color: #333;
+}
+
+.book-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.book-card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    padding: 15px;
+    width: 200px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    border-radius: 5px;
+}
+
+.book-card h2 {
+    font-size: 18px;
+    margin: 0 0 10px;
+}
+
+.book-card a {
+    text-decoration: none;
+    color: #0077cc;
+}
+
+.book-card a:hover {
+    text-decoration: underline;
+}
+
+.book-detail {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    max-width: 600px;
+    margin: auto;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.book-detail h1 {
+    margin-top: 0;
+}
