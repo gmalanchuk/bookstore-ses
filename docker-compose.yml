@@ -1,0 +1,40 @@
+services:
+  bookstore:
+    build: .
+    restart: always
+    volumes:
+      - ./:/bookstore
+    command: >
+      sh -c "uvicorn src.main:app --reload --host 0.0.0.0 --port 8000"
+    ports:
+      - '8000:8000'
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:alpine
+    restart: always
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+      - postgres_data:/var/lib/postgresql/data/
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRES_DB=bookstore
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - '8080:8080'
+    depends_on:
+      - postgres
+
+
+volumes:
+  postgres_data:
