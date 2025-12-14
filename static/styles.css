@@ -50,3 +50,29 @@ h1 {
 .book-detail h1 {
     margin-top: 0;
 }
+
+.book-card {
+    border: 1px solid #ddd;
+    padding: 12px;
+    width: 220px;
+    text-align: center;
+}
+
+.book-cover {
+    width: 120px;
+    height: auto;
+    margin-bottom: 10px;
+    border-radius: 6px;
+}
+
+.book-cover-large {
+    width: 260px;
+    margin: 20px 0;
+    border-radius: 10px;
+}
+
+.book-list {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}

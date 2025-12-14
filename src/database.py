@@ -3,8 +3,8 @@ import asyncpg
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 
-from sql.all_tables import INIT_ALL_TABLES
-from sql.seed_data import SEED_DATA
+from src.sql.all_tables import INIT_ALL_TABLES
+from src.sql.seed_data import SEED_DATA
 
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://admin:admin@postgres:5432/bookstore")
 

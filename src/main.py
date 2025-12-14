@@ -11,12 +11,13 @@ templates = Jinja2Templates(directory="templates")
 
 # Статика
 app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/covers", StaticFiles(directory="covers"), name="covers")
 
 
 # Головна сторінка
 @app.get("/books", response_class=HTMLResponse)
 async def get_books(request: Request):
-    query = "SELECT id, title, price, author_id FROM products;"
+    query = "SELECT id, title, price, author_id, cover_path FROM products;"
     async with app.state.db.acquire() as conn:
         rows = await conn.fetch(query)
     books = [dict(row) for row in rows]

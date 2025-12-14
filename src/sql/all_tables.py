@@ -23,7 +23,8 @@ CREATE TABLE IF NOT EXISTS products (
     type VARCHAR(50) NOT NULL,
     price DECIMAL(10,2) NOT NULL CHECK (price >= 0),
     publication_year INT,
-    stock_quantity INT NOT NULL DEFAULT 0
+    stock_quantity INT NOT NULL DEFAULT 0,
+    cover_path TEXT
 );
 
 CREATE TABLE IF NOT EXISTS reviews (

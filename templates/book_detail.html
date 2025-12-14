@@ -6,17 +6,20 @@
     <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-    <div class="book-detail">
-        <h1>{{ book.title }}</h1>
-        <p><strong>Author ID:</strong> {{ book.author_id }}</p>
-        <p><strong>Publisher:</strong> {{ book.publisher }}</p>
-        <p><strong>Genre:</strong> {{ book.genre }}</p>
-        <p><strong>Type:</strong> {{ book.type }}</p>
-        <p><strong>Price:</strong> ${{ book.price }}</p>
-        <p><strong>Publication Year:</strong> {{ book.publication_year }}</p>
-        <p><strong>Stock Quantity:</strong> {{ book.stock_quantity }}</p>
-        <p><strong>Description:</strong> {{ book.description }}</p>
-        <p><a href="/books">Back to all books</a></p>
-    </div>
+<div class="book-detail">
+    <h1>{{ book.title }}</h1>
+    <img src="{{ book.cover_path }}"
+         alt="Cover of {{ book.title }}"
+         class="book-cover-large">
+    <p><strong>Author ID:</strong> {{ book.author_id }}</p>
+    <p><strong>Publisher:</strong> {{ book.publisher }}</p>
+    <p><strong>Genre:</strong> {{ book.genre }}</p>
+    <p><strong>Type:</strong> {{ book.type }}</p>
+    <p><strong>Price:</strong> ${{ book.price }}</p>
+    <p><strong>Publication Year:</strong> {{ book.publication_year }}</p>
+    <p><strong>Stock Quantity:</strong> {{ book.stock_quantity }}</p>
+    <p><strong>Description:</strong> {{ book.description }}</p>
+    <p><a href="/books">Back to all books</a></p>
+</div>
 </body>
 </html>
