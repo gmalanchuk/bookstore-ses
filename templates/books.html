@@ -3,25 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <title>All Books</title>
-    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/static/books.css">
 </head>
 <body>
-<h1>Books</h1>
-<div class="book-list">
-    {% for book in books %}
-    <div class="book-card">
-        <img src="{{ book.cover_path }}"
-             alt="Cover of {{ book.title }}"
-             class="book-cover">
 
-        <h2>
-            <a href="/books/{{ book.id }}">{{ book.title }}</a>
-        </h2>
-
-        <p>Author ID: {{ book.author_id }}</p>
-        <p>Price: ${{ book.price }}</p>
+<nav class="navbar">
+    <div class="nav-container">
+        <div class="logo">BookStore</div>
+        <div class="nav-actions">
+            <a href="/cart" class="cart-btn">🛒 Cart</a>
+        </div>
     </div>
-    {% endfor %}
-</div>
+</nav>
+
+<main class="container">
+    <h1>Books</h1>
+    <div class="book-list">
+        {% for book in books %}
+        <div class="book-card">
+            <a href="/books/{{ book.id }}" class="book-link">
+                <img src="{{ book.cover_path }}"
+                     alt="Cover of {{ book.title }}"
+                     class="book-cover">
+            </a>
+
+            <h2>
+                <a href="/books/{{ book.id }}">{{ book.title }}</a>
+            </h2>
+
+            <p>Author ID: {{ book.author_id }}</p>
+            <p>Price: ${{ book.price }}</p>
+        </div>
+        {% endfor %}
+    </div>
+</main>
+
 </body>
 </html>

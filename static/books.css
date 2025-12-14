@@ -1,0 +1,140 @@
+/* ===== RESET ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Inter", Arial, sans-serif;
+}
+
+/* ===== BODY ===== */
+body {
+    background-color: #f5f7fa;
+    color: #1f2937;
+}
+
+/* ===== NAVBAR ===== */
+.navbar {
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.nav-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.cart-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    background: #2563eb;
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background 0.2s ease;
+}
+
+.cart-btn:hover {
+    background: #1d4ed8;
+}
+
+/* ===== MAIN CONTAINER ===== */
+.container {
+    max-width: 1200px;
+    margin: 32px auto;
+    padding: 0 24px;
+}
+
+h1 {
+    font-size: 32px;
+    margin-bottom: 24px;
+}
+
+/* ===== BOOK LIST ===== */
+.book-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 24px;
+}
+
+/* ===== BOOK CARD ===== */
+.book-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.book-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+}
+
+/* ===== BOOK COVER ===== */
+.book-cover {
+    width: 100%;
+    height: 280px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin-bottom: 12px;
+}
+
+/* ===== BOOK TITLE ===== */
+.book-card h2 {
+    font-size: 18px;
+    margin-bottom: 8px;
+}
+
+.book-card h2 a {
+    text-decoration: none;
+    color: #111827;
+}
+
+.book-card h2 a:hover {
+    color: #2563eb;
+}
+
+/* ===== BOOK INFO ===== */
+.book-card p {
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 4px;
+}
+
+.book-card p:last-child {
+    margin-top: auto;
+    font-weight: 600;
+    color: #16a34a;
+}
+
+.book-link {
+    display: block;
+}
+
+.book-link:hover .book-cover {
+    transform: scale(1.03);
+}
+
+.book-cover {
+    transition: transform 0.2s ease;
+}
