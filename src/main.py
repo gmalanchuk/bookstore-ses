@@ -14,14 +14,60 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/covers", StaticFiles(directory="covers"), name="covers")
 
 
-# Головна сторінка
+# Головна сторінка з фільтрацією
 @app.get("/books", response_class=HTMLResponse)
-async def get_books(request: Request):
-    query = "SELECT id, title, price, author_id, cover_path FROM books;"
+async def get_books(
+        request: Request,
+        genre_id: int = None,
+        author_id: int = None
+):
+    # Базовий запит
+    query = """
+        SELECT b.id, b.title, b.price, b.author_id, b.cover_path,
+               a.full_name as author_name, g.name as genre_name
+        FROM books b
+        JOIN authors a ON b.author_id = a.id
+        JOIN genres g ON b.genre_id = g.id
+        WHERE 1=1
+    """
+    params = []
+
+    # Додаємо фільтри якщо вони вказані
+    if genre_id is not None:
+        params.append(genre_id)
+        query += f" AND b.genre_id = ${len(params)}"
+
+    if author_id is not None:
+        params.append(author_id)
+        query += f" AND b.author_id = ${len(params)}"
+
+    query += " ORDER BY b.title;"
+
     async with app.state.db.acquire() as conn:
-        rows = await conn.fetch(query)
-    books = [dict(row) for row in rows]
-    return templates.TemplateResponse("books.html", {"request": request, "books": books})
+        # Отримуємо книги з фільтрами
+        rows = await conn.fetch(query, *params)
+        books = [dict(row) for row in rows]
+
+        # Отримуємо всіх авторів для випадаючого списку
+        authors = await conn.fetch(
+            "SELECT id, full_name FROM authors ORDER BY full_name;"
+        )
+        authors_list = [dict(a) for a in authors]
+
+        # Отримуємо всі жанри для випадаючого списку
+        genres = await conn.fetch(
+            "SELECT id, name FROM genres ORDER BY name;"
+        )
+        genres_list = [dict(g) for g in genres]
+
+    return templates.TemplateResponse("books.html", {
+        "request": request,
+        "books": books,
+        "authors": authors_list,
+        "genres": genres_list,
+        "selected_genre": genre_id,
+        "selected_author": author_id
+    })
 
 
 # Інформація про книгу

@@ -17,26 +17,82 @@
 </nav>
 
 <main class="container">
-    <h1>Books</h1>
+    <!-- Панель фільтрації -->
+    <div class="filter-panel">
+        <form method="get" action="/books" class="filter-form" id="filterForm">
+            <div class="filter-group">
+                <label for="author_id">Author:</label>
+                <select name="author_id" id="author_id">
+                    <option value="">All Authors</option>
+                    {% for author in authors %}
+                    <option value="{{ author.id }}"
+                            {% if selected_author == author.id %}selected{% endif %}>
+                        {{ author.full_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="genre_id">Genre:</label>
+                <select name="genre_id" id="genre_id">
+                    <option value="">All Genres</option>
+                    {% for genre in genres %}
+                    <option value="{{ genre.id }}"
+                            {% if selected_genre == genre.id %}selected{% endif %}>
+                        {{ genre.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="filter-buttons">
+                <button type="submit" class="btn-filter">Apply Filters</button>
+                <a href="/books" class="btn-reset">Reset</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Список книг -->
     <div class="book-list">
-        {% for book in books %}
-        <div class="book-card">
-            <a href="/books/{{ book.id }}" class="book-link">
-                <img src="{{ book.cover_path }}"
-                     alt="Cover of {{ book.title }}"
-                     class="book-cover">
-            </a>
+        {% if books %}
+            {% for book in books %}
+            <div class="book-card">
+                <a href="/books/{{ book.id }}" class="book-link">
+                    <img src="{{ book.cover_path }}"
+                         alt="Cover of {{ book.title }}"
+                         class="book-cover">
+                </a>
 
-            <h2>
-                <a href="/books/{{ book.id }}">{{ book.title }}</a>
-            </h2>
+                <h2>
+                    <a href="/books/{{ book.id }}">{{ book.title }}</a>
+                </h2>
 
-            <p>Author ID: {{ book.author_id }}</p>
-            <p>Price: ${{ book.price }}</p>
-        </div>
-        {% endfor %}
+                <p class="book-author">{{ book.author_name }}</p>
+                <p class="book-genre">Genre: {{ book.genre_name }}</p>
+                <p class="book-price">Price: ${{ book.price }}</p>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="no-books">No books found matching your filters.</p>
+        {% endif %}
     </div>
 </main>
+
+<script>
+    // Видаляємо порожні параметри перед відправкою форми
+    document.getElementById('filterForm').addEventListener('submit', function(e) {
+        const authorSelect = document.getElementById('author_id');
+        const genreSelect = document.getElementById('genre_id');
+
+        if (authorSelect.value === '') {
+            authorSelect.removeAttribute('name');
+        }
+        if (genreSelect.value === '') {
+            genreSelect.removeAttribute('name');
+        }
+    });
+</script>
 
 </body>
 </html>
