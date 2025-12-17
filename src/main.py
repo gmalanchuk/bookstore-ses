@@ -17,7 +17,7 @@ app.mount("/covers", StaticFiles(directory="covers"), name="covers")
 # Головна сторінка
 @app.get("/books", response_class=HTMLResponse)
 async def get_books(request: Request):
-    query = "SELECT id, title, price, author_id, cover_path FROM products;"
+    query = "SELECT id, title, price, author_id, cover_path FROM books;"
     async with app.state.db.acquire() as conn:
         rows = await conn.fetch(query)
     books = [dict(row) for row in rows]
@@ -27,7 +27,7 @@ async def get_books(request: Request):
 # Інформація про книгу
 @app.get("/books/{book_id}", response_class=HTMLResponse)
 async def book_detail(request: Request, book_id: int):
-    query = "SELECT * FROM products WHERE id = $1;"
+    query = "SELECT * FROM books WHERE id = $1;"
     async with app.state.db.acquire() as conn:
         row = await conn.fetchrow(query, book_id)
 

@@ -5,6 +5,16 @@ CREATE TABLE IF NOT EXISTS authors (
     description TEXT
 );
 
+CREATE TABLE IF NOT EXISTS publishers (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS genres (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE
+);
+
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     full_name VARCHAR(100) NOT NULL,
@@ -13,14 +23,13 @@ CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(64) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS products (
+CREATE TABLE IF NOT EXISTS books (
     id SERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     description TEXT,
     author_id INT NOT NULL REFERENCES authors(id),
-    publisher VARCHAR(100) NOT NULL,
-    genre VARCHAR(50) NOT NULL,
-    type VARCHAR(50) NOT NULL,
+    publisher_id INT NOT NULL REFERENCES publishers(id),
+    genre_id INT NOT NULL REFERENCES genres(id),
     price DECIMAL(10,2) NOT NULL CHECK (price >= 0),
     publication_year INT,
     stock_quantity INT NOT NULL DEFAULT 0,
@@ -29,7 +38,7 @@ CREATE TABLE IF NOT EXISTS products (
 
 CREATE TABLE IF NOT EXISTS reviews (
     id SERIAL PRIMARY KEY,
-    product_id INT NOT NULL REFERENCES products(id),
+    book_id INT NOT NULL REFERENCES books(id),
     user_id INT NOT NULL REFERENCES users(id),
     rating SMALLINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
     comment_text TEXT
@@ -38,7 +47,15 @@ CREATE TABLE IF NOT EXISTS reviews (
 CREATE TABLE IF NOT EXISTS orders (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL REFERENCES users(id),
-    product_id INT NOT NULL REFERENCES products(id)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS order_items (
+    id SERIAL PRIMARY KEY,
+    order_id INT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    book_id INT NOT NULL REFERENCES books(id),
+    quantity INT NOT NULL CHECK (quantity > 0),
+    price DECIMAL(10,2) NOT NULL CHECK (price >= 0)
 );
 
 CREATE TABLE IF NOT EXISTS payments (
