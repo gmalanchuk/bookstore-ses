@@ -1,25 +1,64 @@
 <!DOCTYPE html>
-<html>
+<html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>{{ book.title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Іперцат - BookStore</title>
     <link rel="stylesheet" href="/static/book_detail.css">
 </head>
 <body>
-<div class="book-detail">
-    <h1>{{ book.title }}</h1>
-    <img src="{{ book.cover_path }}"
-         alt="Cover of {{ book.title }}"
-         class="book-cover-large">
-    <p><strong>Author ID:</strong> {{ book.author_id }}</p>
-    <p><strong>Publisher:</strong> {{ book.publisher }}</p>
-    <p><strong>Genre:</strong> {{ book.genre }}</p>
-    <p><strong>Type:</strong> {{ book.type }}</p>
-    <p><strong>Price:</strong> ${{ book.price }}</p>
-    <p><strong>Publication Year:</strong> {{ book.publication_year }}</p>
-    <p><strong>Stock Quantity:</strong> {{ book.stock_quantity }}</p>
-    <p><strong>Description:</strong> {{ book.description }}</p>
-    <p><a href="/books">Back to all books</a></p>
-</div>
+    {% include 'include/navbar.html' %}
+
+    <main class="book-details-page">
+        <div class="bd-container">
+            <div class="bd-card">
+                <div class="bd-grid">
+                    <div class="bd-cover-column">
+                        <img src="https://via.placeholder.com/300x450/4dd0e1/ffffff?text=Book+Cover" alt="Book Cover" class="bd-image">
+                    </div>
+
+                    <div class="bd-info-column">
+                        <h1 class="bd-title">Іперцат</h1>
+
+                        <div class="bd-meta-list">
+                            <div class="bd-meta-row">
+                                <span class="bd-label">Автор:</span>
+                                <span class="bd-value">Сергій Жадан</span>
+                            </div>
+                            <div class="bd-meta-row">
+                                <span class="bd-label">Жанр:</span>
+                                <span class="bd-value">Novel</span>
+                            </div>
+                            <div class="bd-meta-row">
+                                <span class="bd-label">Видавництво:</span>
+                                <span class="bd-value">Meridian Czernowitz</span>
+                            </div>
+                            <div class="bd-meta-row">
+                                <span class="bd-label">Рік видання:</span>
+                                <span class="bd-value">2021</span>
+                            </div>
+                        </div>
+
+                        <div class="bd-description">
+                            <h2 class="bd-section-title">Опис</h2>
+                            <p class="bd-text">
+                                Це історія про пошуки, втечу та повернення. Головний герой мандрує через занепалі міста та забуті місця,
+                                намагаючись знайти відповіді на питання, які його мучать. Роман сповнений яскравих образів,
+                                глибоких роздумів про сучасність та місце людини у світі, що постійно змінюється.
+                            </p>
+                        </div>
+
+                        <div class="bd-action-bar">
+                            <div class="bd-price">$320.00</div>
+                            <div class="bd-stock">
+                                В наявності: <span class="bd-stock-count">15 шт.</span>
+                            </div>
+                            <button class="bd-add-btn">Додати до кошика</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
 </body>
 </html>
