@@ -73,12 +73,32 @@ async def get_books(
 # Інформація про книгу
 @app.get("/books/{book_id}", response_class=HTMLResponse)
 async def book_detail(request: Request, book_id: int):
-    query = "SELECT * FROM books WHERE id = $1;"
+    # Запрос с JOIN для получения названий вместо ID
+    query = """
+        SELECT 
+            b.id, b.title, b.description, b.price, b.publication_year, 
+            b.stock_quantity, b.cover_path,
+            a.full_name as author_name,
+            p.name as publisher_name,
+            g.name as genre_name
+        FROM books b
+        JOIN authors a ON b.author_id = a.id
+        JOIN publishers p ON b.publisher_id = p.id
+        JOIN genres g ON b.genre_id = g.id
+        WHERE b.id = $1;
+    """
+
     async with app.state.db.acquire() as conn:
         row = await conn.fetchrow(query, book_id)
 
     if not row:
-        return HTMLResponse(content="Book not found", status_code=404)
+        return HTMLResponse(content="Книга не знайдена", status_code=404)
 
-    book = dict(row)
-    return templates.TemplateResponse("book_detail.html", {"request": request, "book": book})
+    # Превращаем результат в словарь для удобства Jinja
+    book_data = dict(row)
+
+    # Возвращаем шаблон (предполагается, что templates настроен)
+    return templates.TemplateResponse(
+        "book_detail.html",
+        {"request": request, "book": book_data}
+    )

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Іперцат - BookStore</title>
+    <title>{{ book.title }} - BookStore</title>
     <link rel="stylesheet" href="/static/book_detail.css">
 </head>
 <body>
@@ -14,46 +14,57 @@
             <div class="bd-card">
                 <div class="bd-grid">
                     <div class="bd-cover-column">
-                        <img src="https://via.placeholder.com/300x450/4dd0e1/ffffff?text=Book+Cover" alt="Book Cover" class="bd-image">
+                        <img src="{{ book.cover_path or 'https://via.placeholder.com/300x450?text=No+Cover' }}"
+                             alt="{{ book.title }}" class="bd-image">
                     </div>
 
                     <div class="bd-info-column">
-                        <h1 class="bd-title">Іперцат</h1>
+                        <h1 class="bd-title">{{ book.title }}</h1>
 
                         <div class="bd-meta-list">
                             <div class="bd-meta-row">
                                 <span class="bd-label">Автор:</span>
-                                <span class="bd-value">Сергій Жадан</span>
+                                <span class="bd-value">{{ book.author_name }}</span>
                             </div>
                             <div class="bd-meta-row">
                                 <span class="bd-label">Жанр:</span>
-                                <span class="bd-value">Novel</span>
+                                <span class="bd-value">{{ book.genre_name }}</span>
                             </div>
                             <div class="bd-meta-row">
                                 <span class="bd-label">Видавництво:</span>
-                                <span class="bd-value">Meridian Czernowitz</span>
+                                <span class="bd-value">{{ book.publisher_name }}</span>
                             </div>
                             <div class="bd-meta-row">
                                 <span class="bd-label">Рік видання:</span>
-                                <span class="bd-value">2021</span>
+                                <span class="bd-value">{{ book.publication_year }}</span>
                             </div>
                         </div>
 
                         <div class="bd-description">
                             <h2 class="bd-section-title">Опис</h2>
                             <p class="bd-text">
-                                Це історія про пошуки, втечу та повернення. Головний герой мандрує через занепалі міста та забуті місця,
-                                намагаючись знайти відповіді на питання, які його мучать. Роман сповнений яскравих образів,
-                                глибоких роздумів про сучасність та місце людини у світі, що постійно змінюється.
+                                {{ book.description }}
                             </p>
                         </div>
 
                         <div class="bd-action-bar">
-                            <div class="bd-price">$320.00</div>
+                            <div class="bd-price">${{ "%.2f"|format(book.price) }}</div>
                             <div class="bd-stock">
-                                В наявності: <span class="bd-stock-count">15 шт.</span>
+                                В наявності:
+                                <span class="bd-stock-count">
+                                    {% if book.stock_quantity > 0 %}
+                                        {{ book.stock_quantity }} шт.
+                                    {% else %}
+                                        Немає в наявності
+                                    {% endif %}
+                                </span>
                             </div>
+
+                            {% if book.stock_quantity > 0 %}
                             <button class="bd-add-btn">Додати до кошика</button>
+                            {% else %}
+                            <button class="bd-add-btn" disabled style="background: gray;">Очікується</button>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
