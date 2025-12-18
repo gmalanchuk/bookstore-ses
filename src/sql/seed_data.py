@@ -77,10 +77,11 @@ SEED_DATA = """
     (8, 8, 5, 'Весела та повчальна книга.'),
     (9, 9, 5, 'Глибокий та чуттєвий роман.'),
     (10, 1, 4, 'Сподобалось, але місцями важке читання.');
+    
+    SELECT setval('users_id_seq', (SELECT MAX(id) FROM users));
+    SELECT setval('authors_id_seq', (SELECT MAX(id) FROM authors));
+    SELECT setval('publishers_id_seq', (SELECT MAX(id) FROM publishers));
+    SELECT setval('genres_id_seq', (SELECT MAX(id) FROM genres));
+    SELECT setval('books_id_seq', (SELECT MAX(id) FROM books));
 """
 
-# SELECT setval('users_id_seq', (SELECT MAX(id) FROM users));
-# SELECT setval('authors_id_seq', (SELECT MAX(id) FROM authors));
-# SELECT setval('publishers_id_seq', (SELECT MAX(id) FROM publishers));
-# SELECT setval('genres_id_seq', (SELECT MAX(id) FROM genres));
-# SELECT setval('books_id_seq', (SELECT MAX(id) FROM books));

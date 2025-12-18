@@ -1,7 +1,12 @@
-from fastapi import FastAPI, Request
+import hashlib
+from urllib.parse import quote
+
+from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from starlette.responses import RedirectResponse, Response
+
 from src.database import lifespan
 
 app = FastAPI(lifespan=lifespan)
@@ -102,3 +107,88 @@ async def book_detail(request: Request, book_id: int):
         "book_detail.html",
         {"request": request, "book": book_data}
     )
+
+
+# Страница регистрации
+@app.get("/register", response_class=HTMLResponse)
+async def register_page(request: Request):
+    return templates.TemplateResponse("register.html", {"request": request})
+
+
+# Обработка регистрации
+@app.post("/register")
+async def register(
+        request: Request,
+        full_name: str = Form(...),
+        email: str = Form(...),
+        password: str = Form(...)
+):
+    async with app.state.db.acquire() as conn:
+        # Проверяем, существует ли email
+        existing_user = await conn.fetchrow(
+            "SELECT id FROM users WHERE email = $1;", email
+        )
+
+        if existing_user:
+            return templates.TemplateResponse(
+                "register.html",
+                {"request": request, "error": "Цей email вже зареєстрований"}
+            )
+
+        # Создаем нового пользователя
+        await conn.execute(
+            """
+            INSERT INTO users (full_name, email, password, role)
+            VALUES ($1, $2, $3, 'customer');
+            """,
+            full_name, email, password
+        )
+
+    # Перенаправляем на страницу логина
+    return RedirectResponse(url="/login", status_code=303)
+
+
+# Страница логина
+@app.get("/login", response_class=HTMLResponse)
+async def login_page(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
+
+
+@app.post("/login")
+async def login(
+    response: Response,
+    request: Request,
+    email: str = Form(...),
+    password: str = Form(...)
+):
+    async with app.state.db.acquire() as conn:
+        user = await conn.fetchrow(
+            """
+            SELECT id, full_name, email, role 
+            FROM users 
+            WHERE email = $1 AND password = $2;
+            """,
+            email, password
+        )
+
+    if not user:
+        return templates.TemplateResponse(
+            "login.html",
+            {"request": request, "error": "Невірний email або пароль"}
+        )
+
+    # Создаем cookie с user_id и кодируем имя в URL-безопасный формат
+    redirect = RedirectResponse(url="/books", status_code=303)
+    redirect.set_cookie(key="user_id", value=str(user['id']))
+    redirect.set_cookie(key="user_name", value=quote(user['full_name']))
+
+    return redirect
+
+
+# Logout
+@app.get("/logout")
+async def logout():
+    redirect = RedirectResponse(url="/login", status_code=303)
+    redirect.delete_cookie(key="user_id")
+    redirect.delete_cookie(key="user_name")
+    return redirect

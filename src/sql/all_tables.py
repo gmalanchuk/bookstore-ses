@@ -65,4 +65,13 @@ CREATE TABLE IF NOT EXISTS payments (
     payment_method VARCHAR(50) NOT NULL DEFAULT 'paypal',
     status VARCHAR(50) NOT NULL DEFAULT 'pending'
 );
+
+CREATE TABLE IF NOT EXISTS cart (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    book_id INT NOT NULL REFERENCES books(id) ON DELETE CASCADE,
+    quantity INT NOT NULL DEFAULT 1 CHECK (quantity > 0),
+    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, book_id)
+);
 """
