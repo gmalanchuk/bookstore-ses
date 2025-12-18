@@ -27,20 +27,39 @@
 .nav-actions {
     display: flex;
     gap: 12px;
+    align-items: center;
 }
 
-.cart-btn {
+.cart-btn, .auth-btn {
     padding: 8px 16px;
     border-radius: 8px;
-    background: #2563eb;
     color: #ffffff;
     text-decoration: none;
     font-weight: 500;
-    transition: background 0.2s ease;
+    transition: all 0.2s ease;
 }
 
-.cart-btn:hover {
+.cart-btn, .auth-btn {
+    background: #2563eb;
+}
+
+.cart-btn:hover, .auth-btn:hover {
     background: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.cart-btn:active, .auth-btn:active {
+    transform: translateY(0);
+}
+
+.logout-btn {
+    background: #dc2626;
+}
+
+.logout-btn:hover {
+    background: #b91c1c;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
 }
 </style>
 
@@ -49,8 +68,36 @@
         <div class="logo">
             <a href="/books" style="text-decoration: none; color: inherit;">BookStore</a>
         </div>
-        <div class="nav-actions">
-            <a href="/cart" class="cart-btn">🛒 Cart</a>
+        <div class="nav-actions" id="navActions">
+            <!-- Контент будет добавлен через JS -->
         </div>
     </div>
 </nav>
+
+<script>
+    // Функция для получения cookie по имени
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+        return null;
+    }
+
+    // Проверяем залогинен ли пользователь
+    const userId = getCookie('user_id');
+    const navActions = document.getElementById('navActions');
+
+    if (userId) {
+        // Пользователь залогинен
+        navActions.innerHTML = `
+            <a href="/cart" class="cart-btn">🛒 Cart</a>
+            <a href="/logout" class="auth-btn logout-btn">Logout</a>
+        `;
+    } else {
+        // Пользователь не залогинен
+        navActions.innerHTML = `
+            <a href="/login" class="auth-btn">Login</a>
+            <a href="/register" class="auth-btn">Register</a>
+        `;
+    }
+</script>

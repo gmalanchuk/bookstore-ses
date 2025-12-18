@@ -188,7 +188,7 @@ async def login(
 # Logout
 @app.get("/logout")
 async def logout():
-    redirect = RedirectResponse(url="/login", status_code=303)
+    redirect = RedirectResponse(url="/books", status_code=303)
     redirect.delete_cookie(key="user_id")
     redirect.delete_cookie(key="user_name")
     return redirect

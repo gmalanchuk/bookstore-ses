@@ -4,29 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Вхід</title>
+    <link rel="stylesheet" href="/static/auth.css">
 </head>
 <body>
-    <h1>Вхід</h1>
+    <div class="auth-container">
+        <a href="/books" class="back-link">← Повернутися на головну</a>
 
-    {% if error %}
-        <p style="color: red;">{{ error }}</p>
-    {% endif %}
+        <h1>Вхід</h1>
+        <p class="subtitle">Увійдіть до свого акаунта</p>
 
-    <form method="post" action="/login">
-        <div>
-            <label>Email:</label><br>
-            <input type="email" name="email" required>
-        </div>
+        {% if error %}
+            <div class="error-message">{{ error }}</div>
+        {% endif %}
 
-        <div>
-            <label>Пароль:</label><br>
-            <input type="text" name="password" required>
-        </div>
+        <form method="post" action="/login">
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
 
-        <br>
-        <button type="submit">Увійти</button>
-    </form>
+            <div class="form-group">
+                <label for="password">Пароль:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
 
-    <p>Немає акаунту? <a href="/register">Зареєструватися</a></p>
+            <button type="submit" class="btn-submit">Увійти</button>
+        </form>
+
+        <p class="footer-text">
+            Немає акаунту? <a href="/register">Зареєструватися</a>
+        </p>
+    </div>
 </body>
 </html>
