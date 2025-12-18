@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кошик</title>
+    <link rel="stylesheet" href="/static/cart.css">
+</head>
+<body>
+    {% include 'include/navbar.html' %}
+
+    <div class="cart-page">
+        <h1>Ваш кошик</h1>
+
+        {% if cart_items %}
+            <div class="cart-container">
+                <div class="cart-items">
+                    {% for item in cart_items %}
+                        <div class="cart-item">
+                            <img src="{{ item.cover_path }}" alt="{{ item.title }}">
+
+
+                            <div class="cart-item-info">
+                                <h3>{{ item.title }}</h3>
+                                <p>Автор: {{ item.author_name }}</p>
+                                <p>Ціна за одиницю: ${{ item.price }}</p>
+                            </div>
+
+                            <div class="cart-item-quantity">
+                                <p>Кількість: {{ item.quantity }}</p>
+                            </div>
+
+                            <div class="cart-item-total">
+                                <p>${{ item.total_price }}</p>
+                            </div>
+
+                            <form method="post" action="/cart/remove/{{ item.cart_id }}">
+                                <button type="submit">Видалити</button>
+                            </form>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="cart-summary">
+                    <h2>Підсумок</h2>
+                    <p>
+                        <span>Всього книг:</span>
+                        <span>{{ total_items }}</span>
+                    </p>
+                    <p>
+                        <span>Загальна вартість:</span>
+                        <span>${{ total_cost }}</span>
+                    </p>
+
+                    <form method="post" action="/order/create">
+                        <button type="submit">Оформити замовлення</button>
+                    </form>
+                </div>
+            </div>
+
+            <a href="/books" class="back-link">← Повернутися до каталогу</a>
+        {% else %}
+            <div class="empty-cart">
+                <p>Ваш кошик порожній</p>
+                <a href="/books">Перейти до каталогу</a>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

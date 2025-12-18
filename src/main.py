@@ -192,3 +192,109 @@ async def logout():
     redirect.delete_cookie(key="user_id")
     redirect.delete_cookie(key="user_name")
     return redirect
+
+
+# Добавление книги в корзину
+@app.post("/cart/add/{book_id}")
+async def add_to_cart(
+        request: Request,
+        book_id: int
+):
+    # Получаем user_id из cookies
+    user_id = request.cookies.get("user_id")
+
+    # Если пользователь не залогинен, редиректим на логин
+    if not user_id:
+        return RedirectResponse(url="/login", status_code=303)
+
+    async with app.state.db.acquire() as conn:
+        # Проверяем, есть ли книга уже в корзине
+        existing_item = await conn.fetchrow(
+            "SELECT id, quantity FROM cart WHERE user_id = $1 AND book_id = $2;",
+            int(user_id), book_id
+        )
+
+        if existing_item:
+            # Увеличиваем количество на 1
+            await conn.execute(
+                "UPDATE cart SET quantity = quantity + 1 WHERE id = $1;",
+                existing_item['id']
+            )
+        else:
+            # Добавляем новую запись с quantity = 1
+            await conn.execute(
+                """
+                INSERT INTO cart (user_id, book_id, quantity)
+                VALUES ($1, $2, 1);
+                """,
+                int(user_id), book_id
+            )
+
+    # Редиректим обратно на страницу книги
+    return RedirectResponse(url=f"/books/{book_id}", status_code=303)
+
+
+# Страница корзины
+@app.get("/cart", response_class=HTMLResponse)
+async def view_cart(request: Request):
+    # Получаем user_id из cookies
+    user_id = request.cookies.get("user_id")
+
+    # Если пользователь не залогинен, редиректим на логин
+    if not user_id:
+        return RedirectResponse(url="/login", status_code=303)
+
+    async with app.state.db.acquire() as conn:
+        # Получаем все книги из корзины с информацией о книге
+        cart_items = await conn.fetch(
+            """
+            SELECT 
+                c.id as cart_id,
+                c.quantity,
+                b.id as book_id,
+                b.title,
+                b.price,
+                b.cover_path,
+                a.full_name as author_name,
+                (b.price * c.quantity) as total_price
+            FROM cart c
+            JOIN books b ON c.book_id = b.id
+            JOIN authors a ON b.author_id = a.id
+            WHERE c.user_id = $1
+            ORDER BY c.added_at DESC;
+            """,
+            int(user_id)
+        )
+
+        cart_list = [dict(item) for item in cart_items]
+
+        # Вычисляем общую стоимость
+        total_cost = sum(item['total_price'] for item in cart_list)
+
+        # Общее количество книг
+        total_items = sum(item['quantity'] for item in cart_list)
+
+    return templates.TemplateResponse("cart.html", {
+        "request": request,
+        "cart_items": cart_list,
+        "total_cost": total_cost,
+        "total_items": total_items
+    })
+
+
+# Удаление книги из корзины
+@app.post("/cart/remove/{cart_id}")
+async def remove_from_cart(request: Request, cart_id: int):
+    user_id = request.cookies.get("user_id")
+
+    if not user_id:
+        return RedirectResponse(url="/login", status_code=303)
+
+    async with app.state.db.acquire() as conn:
+        # Удаляем товар из корзины (проверяем что он принадлежит пользователю)
+        await conn.execute(
+            "DELETE FROM cart WHERE id = $1 AND user_id = $2;",
+            cart_id, int(user_id)
+        )
+
+    return RedirectResponse(url="/cart", status_code=303)

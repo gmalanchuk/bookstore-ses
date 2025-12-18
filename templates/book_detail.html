@@ -61,14 +61,18 @@
                             </div>
 
                             {% if book.stock_quantity > 0 %}
-                            <button class="bd-add-btn">Додати до кошика</button>
+                                <form method="post" action="/cart/add/{{ book.id }}" style="display: inline;">
+                                    <button type="submit" class="bd-add-btn">Додати до кошика</button>
+                                </form>
                             {% else %}
-                            <button class="bd-add-btn" disabled style="background: gray;">Очікується</button>
+                                <button class="bd-add-btn" disabled style="background: gray;">Очікується</button>
                             {% endif %}
+
                         </div>
                     </div>
                 </div>
             </div>
+                        <a href="/books" class="back-link">← Повернутися до каталогу</a>
         </div>
     </main>
 </body>
