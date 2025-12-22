@@ -332,3 +332,33 @@ async def remove_from_cart(request: Request, cart_id: int):
         )
 
     return RedirectResponse(url="/cart", status_code=303)
+
+
+# Обновление количества книг в корзине
+@app.post("/cart/update/{cart_id}")
+async def update_cart_quantity(
+    request: Request,
+    cart_id: int,
+    quantity: int = Form(...)
+):
+    user_id = request.cookies.get("user_id")
+
+    if not user_id:
+        return RedirectResponse(url="/login", status_code=303)
+
+    # Проверяем, что количество не меньше 1
+    if quantity < 1:
+        quantity = 1
+
+    async with app.state.db.acquire() as conn:
+        # Обновляем количество товара в корзине
+        await conn.execute(
+            """
+            UPDATE cart 
+            SET quantity = $1 
+            WHERE id = $2 AND user_id = $3;
+            """,
+            quantity, cart_id, int(user_id)
+        )
+
+    return RedirectResponse(url="/cart", status_code=303)

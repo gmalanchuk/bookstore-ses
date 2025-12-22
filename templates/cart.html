@@ -19,7 +19,6 @@
                         <div class="cart-item">
                             <img src="{{ item.cover_path }}" alt="{{ item.title }}">
 
-
                             <div class="cart-item-info">
                                 <h3>{{ item.title }}</h3>
                                 <p>Автор: {{ item.author_name }}</p>
@@ -27,7 +26,16 @@
                             </div>
 
                             <div class="cart-item-quantity">
-                                <p>Кількість: {{ item.quantity }}</p>
+                                <form method="post" action="/cart/update/{{ item.cart_id }}" class="quantity-form">
+                                    <div class="quantity-control">
+                                        <button type="submit" name="quantity" value="{{ item.quantity - 1 }}"
+                                                class="quantity-btn minus"
+                                                {% if item.quantity <= 1 %}disabled{% endif %}>−</button>
+                                        <span class="quantity-display">{{ item.quantity }}</span>
+                                        <button type="submit" name="quantity" value="{{ item.quantity + 1 }}"
+                                                class="quantity-btn plus">+</button>
+                                    </div>
+                                </form>
                             </div>
 
                             <div class="cart-item-total">
@@ -35,7 +43,7 @@
                             </div>
 
                             <form method="post" action="/cart/remove/{{ item.cart_id }}">
-                                <button type="submit">Видалити</button>
+                                <button type="submit" class="remove-btn">Видалити</button>
                             </form>
                         </div>
                     {% endfor %}
