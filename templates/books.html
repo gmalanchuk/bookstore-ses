@@ -61,7 +61,9 @@
                     <a href="/books/{{ book.id }}">{{ book.title }}</a>
                 </h2>
 
-                <p class="book-author">{{ book.author_name }}</p>
+                <p class="book-author">
+                    <a href="/authors/{{ book.author_id }}" class="author-link">{{ book.author_name }}</a>
+                </p>
                 <p class="book-genre">Genre: {{ book.genre_name }}</p>
                 <p class="book-price">Price: ${{ book.price }}</p>
             </div>

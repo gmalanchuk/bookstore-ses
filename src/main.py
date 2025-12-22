@@ -82,7 +82,7 @@ async def book_detail(request: Request, book_id: int):
     query = """
         SELECT 
             b.id, b.title, b.description, b.price, b.publication_year, 
-            b.stock_quantity, b.cover_path,
+            b.stock_quantity, b.cover_path, b.author_id,
             a.full_name as author_name,
             p.name as publisher_name,
             g.name as genre_name

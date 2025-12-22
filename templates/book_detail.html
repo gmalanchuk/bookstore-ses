@@ -24,7 +24,9 @@
                         <div class="bd-meta-list">
                             <div class="bd-meta-row">
                                 <span class="bd-label">Автор:</span>
-                                <span class="bd-value">{{ book.author_name }}</span>
+                                <span class="bd-value">
+                                    <a href="/authors/{{ book.author_id }}" class="author-link">{{ book.author_name }}</a>
+                                </span>
                             </div>
                             <div class="bd-meta-row">
                                 <span class="bd-label">Жанр:</span>

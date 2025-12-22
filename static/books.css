@@ -209,6 +209,18 @@ h1 {
     color: #16a34a;
 }
 
+/* ===== AUTHOR LINK ===== */
+.author-link {
+    color: #2563eb;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.author-link:hover {
+    color: #1d4ed8;
+    text-decoration: underline;
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
     .filter-form {
