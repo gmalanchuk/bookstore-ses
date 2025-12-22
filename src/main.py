@@ -109,6 +109,40 @@ async def book_detail(request: Request, book_id: int):
     )
 
 
+# Інформація про автора
+@app.get("/authors/{author_id}", response_class=HTMLResponse)
+async def author_detail(request: Request, author_id: int):
+    async with app.state.db.acquire() as conn:
+        # Отримуємо інформацію про автора
+        author_row = await conn.fetchrow(
+            "SELECT id, full_name, description FROM authors WHERE id = $1;",
+            author_id
+        )
+
+        if not author_row:
+            return HTMLResponse(content="Автора не знайдено", status_code=404)
+
+        # Отримуємо всі книги автора
+        books_rows = await conn.fetch(
+            """
+            SELECT b.id, b.title, b.price, b.cover_path, g.name as genre_name
+            FROM books b
+            JOIN genres g ON b.genre_id = g.id
+            WHERE b.author_id = $1
+            ORDER BY b.title;
+            """,
+            author_id
+        )
+
+    author_data = dict(author_row)
+    books_data = [dict(row) for row in books_rows]
+
+    return templates.TemplateResponse(
+        "author_detail.html",
+        {"request": request, "author": author_data, "books": books_data}
+    )
+
+
 # Страница регистрации
 @app.get("/register", response_class=HTMLResponse)
 async def register_page(request: Request):

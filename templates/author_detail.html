@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ author.full_name }} - BookStore</title>
+    <link rel="stylesheet" href="/static/author_detail.css">
+</head>
+<body>
+    {% include 'include/navbar.html' %}
+
+    <main class="author-details-page">
+        <div class="ad-container">
+            <div class="ad-card">
+                <div class="ad-header">
+                    <div class="ad-avatar">
+                        {{ author.full_name[0] }}
+                    </div>
+                    <div class="ad-info">
+                        <h1 class="ad-name">{{ author.full_name }}</h1>
+                        <p class="ad-books-count">Книг у каталозі: {{ books|length }}</p>
+                    </div>
+                </div>
+
+                {% if author.description %}
+                <div class="ad-bio">
+                    <h2 class="ad-section-title">Про автора</h2>
+                    <p class="ad-text">{{ author.description }}</p>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if books %}
+            <div class="ad-books-section">
+                <h2 class="ad-section-title">Книги автора</h2>
+                <div class="ad-books-grid">
+                    {% for book in books %}
+                    <a href="/books/{{ book.id }}" class="ad-book-card">
+                        <img src="{{ book.cover_path or 'https://via.placeholder.com/150x220?text=No+Cover' }}"
+                             alt="{{ book.title }}" class="ad-book-cover">
+                        <div class="ad-book-info">
+                            <h3 class="ad-book-title">{{ book.title }}</h3>
+                            <span class="ad-book-genre">{{ book.genre_name }}</span>
+                            <span class="ad-book-price">${{ "%.2f"|format(book.price) }}</span>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <div class="ad-no-books">
+                <p>У цього автора поки немає книг у каталозі.</p>
+            </div>
+            {% endif %}
+
+            <a href="/books" class="back-link">← Повернутися до каталогу</a>
+        </div>
+    </main>
+</body>
+</html>
+
