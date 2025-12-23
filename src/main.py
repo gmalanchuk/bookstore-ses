@@ -78,6 +78,9 @@ async def get_books(
 # Інформація про книгу
 @app.get("/books/{book_id}", response_class=HTMLResponse)
 async def book_detail(request: Request, book_id: int):
+    # Получаем user_id из cookies
+    user_id = request.cookies.get("user_id")
+
     # Запрос с JOIN для получения названий вместо ID
     query = """
         SELECT 
@@ -93,20 +96,94 @@ async def book_detail(request: Request, book_id: int):
         WHERE b.id = $1;
     """
 
+    # Запрос для получения отзывов
+    reviews_query = """
+        SELECT 
+            r.id, r.rating, r.comment_text,
+            u.full_name as user_name,
+            r.user_id
+        FROM reviews r
+        JOIN users u ON r.user_id = u.id
+        WHERE r.book_id = $1
+        ORDER BY r.id DESC;
+    """
+
     async with app.state.db.acquire() as conn:
         row = await conn.fetchrow(query, book_id)
+        reviews_rows = await conn.fetch(reviews_query, book_id)
 
     if not row:
         return HTMLResponse(content="Книга не знайдена", status_code=404)
 
     # Превращаем результат в словарь для удобства Jinja
     book_data = dict(row)
+    reviews_data = [dict(r) for r in reviews_rows]
+
+    # Проверяем, оставлял ли текущий пользователь отзыв
+    user_has_review = False
+    if user_id:
+        user_has_review = any(r['user_id'] == int(user_id) for r in reviews_data)
 
     # Возвращаем шаблон (предполагается, что templates настроен)
     return templates.TemplateResponse(
         "book_detail.html",
-        {"request": request, "book": book_data}
+        {
+            "request": request,
+            "book": book_data,
+            "reviews": reviews_data,
+            "user_id": user_id,
+            "user_has_review": user_has_review
+        }
     )
+
+
+# Добавление отзыва
+@app.post("/books/{book_id}/review")
+async def add_review(
+    request: Request,
+    book_id: int,
+    rating: int = Form(...),
+    comment_text: str = Form("")
+):
+    # Получаем user_id из cookies
+    user_id = request.cookies.get("user_id")
+
+    # Если пользователь не залогинен, редиректим на логин
+    if not user_id:
+        return RedirectResponse(url="/login", status_code=303)
+
+    # Проверяем корректность рейтинга
+    if rating < 1 or rating > 5:
+        return RedirectResponse(url=f"/books/{book_id}", status_code=303)
+
+    async with app.state.db.acquire() as conn:
+        # Проверяем, не оставлял ли пользователь уже отзыв
+        existing_review = await conn.fetchrow(
+            "SELECT id FROM reviews WHERE book_id = $1 AND user_id = $2;",
+            book_id, int(user_id)
+        )
+
+        if existing_review:
+            # Обновляем существующий отзыв
+            await conn.execute(
+                """
+                UPDATE reviews 
+                SET rating = $1, comment_text = $2 
+                WHERE book_id = $3 AND user_id = $4;
+                """,
+                rating, comment_text, book_id, int(user_id)
+            )
+        else:
+            # Создаем новый отзыв
+            await conn.execute(
+                """
+                INSERT INTO reviews (book_id, user_id, rating, comment_text)
+                VALUES ($1, $2, $3, $4);
+                """,
+                book_id, int(user_id), rating, comment_text
+            )
+
+    return RedirectResponse(url=f"/books/{book_id}", status_code=303)
 
 
 # Інформація про автора

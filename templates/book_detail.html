@@ -74,7 +74,68 @@
                     </div>
                 </div>
             </div>
-                        <a href="/books" class="back-link">← Повернутися до каталогу</a>
+
+            <!-- Секция отзывов -->
+            <div class="bd-reviews-section">
+                <h2 class="bd-reviews-title">Відгуки</h2>
+
+                <!-- Форма добавления отзыва -->
+                {% if user_id %}
+                    {% if not user_has_review %}
+                    <div class="bd-review-form-card">
+                        <h3 class="bd-form-title">Залишити відгук</h3>
+                        <form method="post" action="/books/{{ book.id }}/review" class="bd-review-form">
+                            <div class="bd-rating-select">
+                                <label class="bd-form-label">Оцінка:</label>
+                                <div class="bd-stars-input">
+                                    {% for i in range(5, 0, -1) %}
+                                    <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}" required>
+                                    <label for="star{{ i }}" class="bd-star-label">★</label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="bd-comment-input">
+                                <label for="comment_text" class="bd-form-label">Коментар:</label>
+                                <textarea id="comment_text" name="comment_text" rows="4"
+                                          placeholder="Напишіть ваш відгук про книгу..." class="bd-textarea"></textarea>
+                            </div>
+                            <button type="submit" class="bd-submit-review-btn">Відправити відгук</button>
+                        </form>
+                    </div>
+                    {% else %}
+                    <div class="bd-review-notice">
+                        <p>Ви вже залишили відгук на цю книгу.</p>
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <div class="bd-review-notice">
+                        <p>Щоб залишити відгук, будь ласка, <a href="/login" class="author-link">увійдіть</a> в систему.</p>
+                    </div>
+                {% endif %}
+
+                <!-- Список отзывов -->
+                <div class="bd-reviews-list">
+                    {% if reviews %}
+                        {% for review in reviews %}
+                        <div class="bd-review-card">
+                            <div class="bd-review-header">
+                                <span class="bd-reviewer-name">{{ review.user_name }}</span>
+                                <span class="bd-review-rating">
+                                    {% for i in range(review.rating) %}★{% endfor %}{% for i in range(5 - review.rating) %}☆{% endfor %}
+                                </span>
+                            </div>
+                            {% if review.comment_text %}
+                            <p class="bd-review-text">{{ review.comment_text }}</p>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="bd-no-reviews">Поки що немає відгуків. Будьте першим!</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <a href="/books" class="back-link">← Повернутися до каталогу</a>
         </div>
     </main>
 </body>
