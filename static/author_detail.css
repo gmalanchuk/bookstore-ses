@@ -116,10 +116,11 @@ body {
 
 .ad-book-cover {
     width: 100%;
-    height: 220px;
-    object-fit: cover;
+    aspect-ratio: 2 / 3;
+    object-fit: contain;
     border-radius: 8px;
     margin-bottom: 1rem;
+    background-color: #f3f4f6;
 }
 
 .ad-book-info {
@@ -199,4 +200,3 @@ body {
         height: 180px;
     }
 }
-
