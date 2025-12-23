@@ -89,7 +89,7 @@ h1 {
 
 .cart-item img {
     width: 100px;
-    height: 140px;
+    aspect-ratio: 2 / 3;
     object-fit: cover;
     border-radius: 8px;
 }
