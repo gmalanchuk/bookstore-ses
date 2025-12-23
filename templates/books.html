@@ -65,7 +65,7 @@
                     <a href="/authors/{{ book.author_id }}" class="author-link">{{ book.author_name }}</a>
                 </p>
                 <p class="book-genre">Genre: {{ book.genre_name }}</p>
-                <p class="book-price">Price: ${{ book.price }}</p>
+                <p class="book-price">Price: {{ book.price }} грн</p>
             </div>
             {% endfor %}
         {% else %}

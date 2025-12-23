@@ -22,7 +22,7 @@
                             <div class="cart-item-info">
                                 <h3>{{ item.title }}</h3>
                                 <p>Автор: {{ item.author_name }}</p>
-                                <p>Ціна за одиницю: ${{ item.price }}</p>
+                                <p>Ціна за одиницю: {{ item.price }} грн</p>
                             </div>
 
                             <div class="cart-item-quantity">
@@ -39,7 +39,7 @@
                             </div>
 
                             <div class="cart-item-total">
-                                <p>${{ item.total_price }}</p>
+                                <p>{{ item.total_price }} грн</p>
                             </div>
 
                             <form method="post" action="/cart/remove/{{ item.cart_id }}">
@@ -57,7 +57,7 @@
                     </p>
                     <p>
                         <span>Загальна вартість:</span>
-                        <span>${{ total_cost }}</span>
+                        <span>{{ total_cost }} грн</span>
                     </p>
 
                     <form method="post" action="/order/create">

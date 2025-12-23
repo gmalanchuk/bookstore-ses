@@ -41,7 +41,7 @@
                         <div class="ad-book-info">
                             <h3 class="ad-book-title">{{ book.title }}</h3>
                             <span class="ad-book-genre">{{ book.genre_name }}</span>
-                            <span class="ad-book-price">${{ "%.2f"|format(book.price) }}</span>
+                            <span class="ad-book-price">{{ "%.2f"|format(book.price) }} грн</span>
                         </div>
                     </a>
                     {% endfor %}
@@ -58,4 +58,3 @@
     </main>
 </body>
 </html>
-
