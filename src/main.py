@@ -1,4 +1,3 @@
-import hashlib
 from urllib.parse import quote
 
 from fastapi import FastAPI, Request, Form
@@ -78,10 +77,10 @@ async def get_books(
 # Інформація про книгу
 @app.get("/books/{book_id}", response_class=HTMLResponse)
 async def book_detail(request: Request, book_id: int):
-    # Получаем user_id из cookies
+    # Отримуємо user_id з cookies
     user_id = request.cookies.get("user_id")
 
-    # Запрос с JOIN для получения названий вместо ID
+    # Запит з JOIN для отримання назв замість ID
     query = """
         SELECT 
             b.id, b.title, b.description, b.price, b.publication_year, 
@@ -96,7 +95,7 @@ async def book_detail(request: Request, book_id: int):
         WHERE b.id = $1;
     """
 
-    # Запрос для получения отзывов
+    # Запит для отримання відгуків
     reviews_query = """
         SELECT 
             r.id, r.rating, r.comment_text,
@@ -115,16 +114,16 @@ async def book_detail(request: Request, book_id: int):
     if not row:
         return HTMLResponse(content="Книга не знайдена", status_code=404)
 
-    # Превращаем результат в словарь для удобства Jinja
+    # Перетворюємо результат у словник для зручності Jinja
     book_data = dict(row)
     reviews_data = [dict(r) for r in reviews_rows]
 
-    # Проверяем, оставлял ли текущий пользователь отзыв
+    # Перевіряємо, чи залишав поточний користувач відгук
     user_has_review = False
     if user_id:
         user_has_review = any(r['user_id'] == int(user_id) for r in reviews_data)
 
-    # Возвращаем шаблон (предполагается, что templates настроен)
+    # Повертаємо шаблон
     return templates.TemplateResponse(
         "book_detail.html",
         {
@@ -137,7 +136,7 @@ async def book_detail(request: Request, book_id: int):
     )
 
 
-# Добавление отзыва
+# Додавання відгуку
 @app.post("/books/{book_id}/review")
 async def add_review(
     request: Request,
@@ -145,26 +144,26 @@ async def add_review(
     rating: int = Form(...),
     comment_text: str = Form("")
 ):
-    # Получаем user_id из cookies
+    # Отримуємо user_id з cookies
     user_id = request.cookies.get("user_id")
 
-    # Если пользователь не залогинен, редиректим на логин
+    # Якщо користувач не залогінений, перенаправляємо на логін
     if not user_id:
         return RedirectResponse(url="/login", status_code=303)
 
-    # Проверяем корректность рейтинга
+    # Перевіряємо коректність рейтингу
     if rating < 1 or rating > 5:
         return RedirectResponse(url=f"/books/{book_id}", status_code=303)
 
     async with app.state.db.acquire() as conn:
-        # Проверяем, не оставлял ли пользователь уже отзыв
+        # Перевіряємо, чи не залишав користувач вже відгук
         existing_review = await conn.fetchrow(
             "SELECT id FROM reviews WHERE book_id = $1 AND user_id = $2;",
             book_id, int(user_id)
         )
 
         if existing_review:
-            # Обновляем существующий отзыв
+            # Оновлюємо існуючий відгук
             await conn.execute(
                 """
                 UPDATE reviews 
@@ -174,7 +173,7 @@ async def add_review(
                 rating, comment_text, book_id, int(user_id)
             )
         else:
-            # Создаем новый отзыв
+            # Створюємо новий відгук
             await conn.execute(
                 """
                 INSERT INTO reviews (book_id, user_id, rating, comment_text)
@@ -220,13 +219,13 @@ async def author_detail(request: Request, author_id: int):
     )
 
 
-# Страница регистрации
+# Сторінка реєстрації
 @app.get("/register", response_class=HTMLResponse)
 async def register_page(request: Request):
     return templates.TemplateResponse("register.html", {"request": request})
 
 
-# Обработка регистрации
+# Обробка реєстрації
 @app.post("/register")
 async def register(
         request: Request,
@@ -235,7 +234,7 @@ async def register(
         password: str = Form(...)
 ):
     async with app.state.db.acquire() as conn:
-        # Проверяем, существует ли email
+        # Перевіряємо, чи існує email
         existing_user = await conn.fetchrow(
             "SELECT id FROM users WHERE email = $1;", email
         )
@@ -246,7 +245,7 @@ async def register(
                 {"request": request, "error": "Цей email вже зареєстрований"}
             )
 
-        # Создаем нового пользователя
+        # Створюємо нового користувача
         await conn.execute(
             """
             INSERT INTO users (full_name, email, password, role)
@@ -255,11 +254,11 @@ async def register(
             full_name, email, password
         )
 
-    # Перенаправляем на страницу логина
+    # Перенаправляємо на сторінку логіну
     return RedirectResponse(url="/login", status_code=303)
 
 
-# Страница логина
+# Сторінка логіну
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
@@ -288,7 +287,7 @@ async def login(
             {"request": request, "error": "Невірний email або пароль"}
         )
 
-    # Создаем cookie с user_id и кодируем имя в URL-безопасный формат
+    # Створюємо cookie з user_id та кодуємо ім'я в URL-безпечний формат
     redirect = RedirectResponse(url="/books", status_code=303)
     redirect.set_cookie(key="user_id", value=str(user['id']))
     redirect.set_cookie(key="user_name", value=quote(user['full_name']))
@@ -296,7 +295,7 @@ async def login(
     return redirect
 
 
-# Logout
+# Вихід з системи
 @app.get("/logout")
 async def logout():
     redirect = RedirectResponse(url="/books", status_code=303)
@@ -305,34 +304,34 @@ async def logout():
     return redirect
 
 
-# Добавление книги в корзину
+# Додавання книги до кошика
 @app.post("/cart/add/{book_id}")
 async def add_to_cart(
         request: Request,
         book_id: int
 ):
-    # Получаем user_id из cookies
+    # Отримуємо user_id з cookies
     user_id = request.cookies.get("user_id")
 
-    # Если пользователь не залогинен, редиректим на логин
+    # Якщо користувач не залогінений, перенаправляємо на логін
     if not user_id:
         return RedirectResponse(url="/login", status_code=303)
 
     async with app.state.db.acquire() as conn:
-        # Проверяем, есть ли книга уже в корзине
+        # Перевіряємо, чи є книга вже в кошику
         existing_item = await conn.fetchrow(
             "SELECT id, quantity FROM cart WHERE user_id = $1 AND book_id = $2;",
             int(user_id), book_id
         )
 
         if existing_item:
-            # Увеличиваем количество на 1
+            # Збільшуємо кількість на 1
             await conn.execute(
                 "UPDATE cart SET quantity = quantity + 1 WHERE id = $1;",
                 existing_item['id']
             )
         else:
-            # Добавляем новую запись с quantity = 1
+            # Додаємо новий запис з quantity = 1
             await conn.execute(
                 """
                 INSERT INTO cart (user_id, book_id, quantity)
@@ -341,22 +340,22 @@ async def add_to_cart(
                 int(user_id), book_id
             )
 
-    # Редиректим обратно на страницу книги
+    # Перенаправляємо назад на сторінку книги
     return RedirectResponse(url=f"/books/{book_id}", status_code=303)
 
 
-# Страница корзины
+# Сторінка кошика
 @app.get("/cart", response_class=HTMLResponse)
 async def view_cart(request: Request):
-    # Получаем user_id из cookies
+    # Отримуємо user_id з cookies
     user_id = request.cookies.get("user_id")
 
-    # Если пользователь не залогинен, редиректим на логин
+    # Якщо користувач не залогінений, перенаправляємо на логін
     if not user_id:
         return RedirectResponse(url="/login", status_code=303)
 
     async with app.state.db.acquire() as conn:
-        # Получаем все книги из корзины с информацией о книге
+        # Отримуємо всі книги з кошика з інформацією про книгу
         cart_items = await conn.fetch(
             """
             SELECT 
@@ -379,13 +378,13 @@ async def view_cart(request: Request):
 
         cart_list = [dict(item) for item in cart_items]
 
-        # Вычисляем общую стоимость
+        # Обчислюємо загальну вартість
         total_cost = sum(item['total_price'] for item in cart_list)
 
-        # Общее количество книг
+        # Загальна кількість книг
         total_items = sum(item['quantity'] for item in cart_list)
 
-        # Получаем историю заказов пользователя
+        # Отримуємо історію замовлень користувача
         orders = await conn.fetch(
             """
             SELECT 
@@ -415,7 +414,7 @@ async def view_cart(request: Request):
     })
 
 
-# Удаление книги из корзины
+# Видалення книги з кошика
 @app.post("/cart/remove/{cart_id}")
 async def remove_from_cart(request: Request, cart_id: int):
     user_id = request.cookies.get("user_id")
@@ -424,7 +423,7 @@ async def remove_from_cart(request: Request, cart_id: int):
         return RedirectResponse(url="/login", status_code=303)
 
     async with app.state.db.acquire() as conn:
-        # Удаляем товар из корзины (проверяем что он принадлежит пользователю)
+        # Видаляємо товар з кошика (перевіряємо що він належить користувачу)
         await conn.execute(
             "DELETE FROM cart WHERE id = $1 AND user_id = $2;",
             cart_id, int(user_id)
@@ -433,7 +432,7 @@ async def remove_from_cart(request: Request, cart_id: int):
     return RedirectResponse(url="/cart", status_code=303)
 
 
-# Обновление количества книг в корзине
+# Оновлення кількості книг у кошику
 @app.post("/cart/update/{cart_id}")
 async def update_cart_quantity(
     request: Request,
@@ -445,12 +444,12 @@ async def update_cart_quantity(
     if not user_id:
         return RedirectResponse(url="/login", status_code=303)
 
-    # Проверяем, что количество не меньше 1
+    # Перевіряємо, що кількість не менше 1
     if quantity < 1:
         quantity = 1
 
     async with app.state.db.acquire() as conn:
-        # Обновляем количество товара в корзине
+        # Оновлюємо кількість товару в кошику
         await conn.execute(
             """
             UPDATE cart 
@@ -463,7 +462,7 @@ async def update_cart_quantity(
     return RedirectResponse(url="/cart", status_code=303)
 
 
-# Страница оформления заказа
+# Сторінка оформлення замовлення
 @app.post("/order/create", response_class=HTMLResponse)
 async def order_create_page(request: Request):
     user_id = request.cookies.get("user_id")
@@ -472,7 +471,7 @@ async def order_create_page(request: Request):
         return RedirectResponse(url="/login", status_code=303)
 
     async with app.state.db.acquire() as conn:
-        # Получаем товары из корзины
+        # Отримуємо товари з кошика
         cart_items = await conn.fetch(
             """
             SELECT 
@@ -501,7 +500,7 @@ async def order_create_page(request: Request):
         total_cost = sum(item['total_price'] for item in cart_list)
         total_items = sum(item['quantity'] for item in cart_list)
 
-        # Получаем данные пользователя
+        # Отримуємо дані користувача
         user = await conn.fetchrow(
             "SELECT full_name, email FROM users WHERE id = $1;",
             int(user_id)
@@ -516,7 +515,7 @@ async def order_create_page(request: Request):
     })
 
 
-# Подтверждение заказа
+# Підтвердження замовлення
 @app.post("/order/confirm")
 async def order_confirm(
     request: Request,
@@ -532,7 +531,7 @@ async def order_confirm(
         return RedirectResponse(url="/login", status_code=303)
 
     async with app.state.db.acquire() as conn:
-        # Получаем товары из корзины
+        # Отримуємо товари з кошика
         cart_items = await conn.fetch(
             """
             SELECT 
@@ -551,15 +550,15 @@ async def order_confirm(
         if not cart_items:
             return RedirectResponse(url="/cart", status_code=303)
 
-        # Проверяем наличие товаров на складе
+        # Перевіряємо наявність товарів на складі
         for item in cart_items:
             if item['quantity'] > item['stock_quantity']:
                 return RedirectResponse(url="/cart", status_code=303)
 
-        # Вычисляем общую сумму
+        # Обчислюємо загальну суму
         total_amount = sum(item['price'] * item['quantity'] for item in cart_items)
 
-        # Создаем заказ
+        # Створюємо замовлення
         order = await conn.fetchrow(
             """
             INSERT INTO orders (user_id, created_at)
@@ -570,7 +569,7 @@ async def order_confirm(
         )
         order_id = order['id']
 
-        # Добавляем товары в заказ
+        # Додаємо товари до замовлення
         for item in cart_items:
             await conn.execute(
                 """
@@ -580,7 +579,7 @@ async def order_confirm(
                 order_id, item['book_id'], item['quantity'], item['price']
             )
 
-            # Уменьшаем количество на складе
+            # Зменшуємо кількість на складі
             await conn.execute(
                 """
                 UPDATE books 
@@ -590,7 +589,7 @@ async def order_confirm(
                 item['quantity'], item['book_id']
             )
 
-        # Создаем запись об оплате
+        # Створюємо запис про оплату
         await conn.execute(
             """
             INSERT INTO payments (order_id, amount, payment_method, status)
@@ -599,7 +598,7 @@ async def order_confirm(
             order_id, total_amount, payment_method
         )
 
-        # Очищаем корзину
+        # Очищаємо кошик
         await conn.execute(
             "DELETE FROM cart WHERE user_id = $1;",
             int(user_id)
@@ -608,7 +607,7 @@ async def order_confirm(
     return RedirectResponse(url=f"/order/success/{order_id}", status_code=303)
 
 
-# Страница успешного заказа
+# Сторінка успішного замовлення
 @app.get("/order/success/{order_id}", response_class=HTMLResponse)
 async def order_success(request: Request, order_id: int):
     user_id = request.cookies.get("user_id")
@@ -617,7 +616,7 @@ async def order_success(request: Request, order_id: int):
         return RedirectResponse(url="/login", status_code=303)
 
     async with app.state.db.acquire() as conn:
-        # Получаем информацию о заказе
+        # Отримуємо інформацію про замовлення
         order = await conn.fetchrow(
             """
             SELECT o.id, o.created_at, p.amount, p.payment_method, p.status
@@ -631,7 +630,7 @@ async def order_success(request: Request, order_id: int):
         if not order:
             return HTMLResponse(content="Замовлення не знайдено", status_code=404)
 
-        # Получаем товары заказа
+        # Отримуємо товари замовлення
         order_items = await conn.fetch(
             """
             SELECT 

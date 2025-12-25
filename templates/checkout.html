@@ -13,7 +13,7 @@
         <h1>Оформлення замовлення</h1>
 
         <div class="checkout-container">
-            <!-- Форма оформления -->
+            <!-- Форма оформлення -->
             <div class="checkout-form-section">
                 <h2>Контактні дані</h2>
                 <form method="post" action="/order/confirm" class="checkout-form" id="checkout-form">
@@ -53,7 +53,7 @@
                         </label>
                     </div>
 
-                    <!-- Скрытые поля для данных карты -->
+                    <!-- Приховані поля для даних картки -->
                     <input type="hidden" name="card_number" id="card_number_hidden">
                     <input type="hidden" name="card_expiry" id="card_expiry_hidden">
                     <input type="hidden" name="card_cvv" id="card_cvv_hidden">
@@ -62,7 +62,7 @@
                 </form>
             </div>
 
-            <!-- Сводка заказа -->
+            <!-- Підсумок замовлення -->
             <div class="order-summary">
                 <h2>Ваше замовлення</h2>
 
@@ -98,7 +98,7 @@
         </div>
     </div>
 
-    <!-- Модальное окно для ввода данных карты -->
+    <!-- Модальне вікно для введення даних картки -->
     <div class="modal-overlay" id="card-modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -145,25 +145,25 @@
         const paymentCard = document.getElementById('payment-card');
         const paymentCash = document.getElementById('payment-cash');
 
-        // Поля карты
+        // Поля картки
         const cardNumber = document.getElementById('card_number');
         const cardExpiry = document.getElementById('card_expiry');
         const cardCvv = document.getElementById('card_cvv');
         const cardHolder = document.getElementById('card_holder');
 
-        // Скрытые поля формы
+        // Приховані поля форми
         const cardNumberHidden = document.getElementById('card_number_hidden');
         const cardExpiryHidden = document.getElementById('card_expiry_hidden');
         const cardCvvHidden = document.getElementById('card_cvv_hidden');
 
-        // Форматирование номера карты
+        // Форматування номера картки
         cardNumber.addEventListener('input', function(e) {
             let value = e.target.value.replace(/\D/g, '');
             value = value.replace(/(\d{4})(?=\d)/g, '$1 ');
             e.target.value = value.substring(0, 19);
         });
 
-        // Форматирование срока действия
+        // Форматування терміну дії
         cardExpiry.addEventListener('input', function(e) {
             let value = e.target.value.replace(/\D/g, '');
             if (value.length >= 2) {
@@ -172,12 +172,12 @@
             e.target.value = value.substring(0, 5);
         });
 
-        // Только цифры для CVV
+        // Тільки цифри для CVV
         cardCvv.addEventListener('input', function(e) {
             e.target.value = e.target.value.replace(/\D/g, '').substring(0, 3);
         });
 
-        // Обработка отправки формы
+        // Обробка відправки форми
         form.addEventListener('submit', function(e) {
             if (paymentCard.checked) {
                 e.preventDefault();
@@ -199,23 +199,23 @@
         modalClose.addEventListener('click', closeModal);
         btnCancel.addEventListener('click', closeModal);
 
-        // Закрытие по клику на overlay
+        // Закриття по кліку на overlay
         modal.addEventListener('click', function(e) {
             if (e.target === modal) {
                 closeModal();
             }
         });
 
-        // Закрытие по Escape
+        // Закриття по Escape
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape' && modal.classList.contains('active')) {
                 closeModal();
             }
         });
 
-        // Оплата картой
+        // Оплата карткою
         btnPay.addEventListener('click', function() {
-            // Валидация
+            // Валідація
             const cardNum = cardNumber.value.replace(/\s/g, '');
             const expiry = cardExpiry.value;
             const cvv = cardCvv.value;
@@ -242,7 +242,7 @@
                 return;
             }
 
-            // Сохраняем данные в скрытые поля (последние 4 цифры для безопасности)
+            // Зберігаємо дані в приховані поля (останні 4 цифри для безпеки)
             cardNumberHidden.value = '**** **** **** ' + cardNum.slice(-4);
             cardExpiryHidden.value = expiry;
             cardCvvHidden.value = '***';

@@ -16,20 +16,20 @@ async def lifespan(app: FastAPI):
     async with app.state.db.acquire() as conn:
         # Створюємо всі таблиці, якщо їх ще немає
         await conn.execute(INIT_ALL_TABLES)
-        print("Tables created")
+        print("Таблиці створено")
 
         # Перевіряємо, чи порожня таблиця authors
         # Якщо кількість записів = 0, то база ще не була заповнена
         authors_count = await conn.fetchval("SELECT COUNT(*) FROM authors;")
 
         if authors_count == 0:
-            print("Database empty → Seeding initial data...")
+            print("База даних порожня → Заповнюємо початковими даними...")
             await conn.execute(SEED_DATA)
-            print("Seed data inserted")
+            print("Початкові дані додано")
         else:
-            print("Seed already exists → skipping")
+            print("Дані вже існують → пропускаємо")
 
     yield
 
     await app.state.db.close()
-    print("Disconnected from DB")
+    print("Відʼєднано від бази даних")
