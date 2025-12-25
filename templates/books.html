@@ -62,9 +62,9 @@
                 </h2>
 
                 <p class="book-author">
-                    <a href="/authors/{{ book.author_id }}" class="author-link">{{ book.author_name }}</a>
+                    <a href="/authors/{{ book.author_id }}" class="author-link">{{ book.full_name }}</a>
                 </p>
-                <p class="book-genre">Жанр: {{ book.genre_name }}</p>
+                <p class="book-genre">Жанр: {{ book.name }}</p>
                 <p class="book-price">Ціна: {{ book.price }} грн</p>
             </div>
             {% endfor %}

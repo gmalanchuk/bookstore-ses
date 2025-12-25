@@ -25,18 +25,16 @@ async def get_books(
         genre_id: int = None,
         author_id: int = None
 ):
-    # Базовий запит
     query = """
-        SELECT b.id, b.title, b.price, b.author_id, b.cover_path,
-               a.full_name as author_name, g.name as genre_name
+        SELECT b.id, b.title, b.price, b.author_id, b.cover_path, a.full_name, g.name
         FROM books b
-        JOIN authors a ON b.author_id = a.id
-        JOIN genres g ON b.genre_id = g.id
-        WHERE 1=1
+        JOIN authors a ON b.author_id = a.id  -- todo книга підтягує автора
+        JOIN genres g ON b.genre_id = g.id  -- todo книга підтягує жанр
+        WHERE 1=1  -- todo потрібен щоб запити знизу для фільтрів можна було писати просто через AND
     """
     params = []
 
-    # Додаємо фільтри якщо вони вказані
+    # додаємо фільтри якщо вони вказані
     if genre_id is not None:
         params.append(genre_id)
         query += f" AND b.genre_id = ${len(params)}"
@@ -48,17 +46,21 @@ async def get_books(
     query += " ORDER BY b.title;"
 
     async with app.state.db.acquire() as conn:
-        # Отримуємо книги з фільтрами
+        # книги з фільтрами
+        print("/books query: =====================================")
+        print(query)
+        print(params) # айді жанру і автора
+        print("end ==============================================")
         rows = await conn.fetch(query, *params)
         books = [dict(row) for row in rows]
 
-        # Отримуємо всіх авторів для випадаючого списку
+        # вивід авторів у випадаючому списку
         authors = await conn.fetch(
             "SELECT id, full_name FROM authors ORDER BY full_name;"
         )
         authors_list = [dict(a) for a in authors]
 
-        # Отримуємо всі жанри для випадаючого списку
+        # вивід жанрів у випадаючому списку
         genres = await conn.fetch(
             "SELECT id, name FROM genres ORDER BY name;"
         )
