@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>All Books</title>
+    <title>Усі книги</title>
     <link rel="stylesheet" href="/static/books.css">
 </head>
 <body>
@@ -14,9 +14,9 @@
     <div class="filter-panel">
         <form method="get" action="/books" class="filter-form" id="filterForm">
             <div class="filter-group">
-                <label for="author_id">Author:</label>
+                <label for="author_id">Автор:</label>
                 <select name="author_id" id="author_id">
-                    <option value="">All Authors</option>
+                    <option value="">Усі автори</option>
                     {% for author in authors %}
                     <option value="{{ author.id }}"
                             {% if selected_author == author.id %}selected{% endif %}>
@@ -27,9 +27,9 @@
             </div>
 
             <div class="filter-group">
-                <label for="genre_id">Genre:</label>
+                <label for="genre_id">Жанр:</label>
                 <select name="genre_id" id="genre_id">
-                    <option value="">All Genres</option>
+                    <option value="">Усі жанри</option>
                     {% for genre in genres %}
                     <option value="{{ genre.id }}"
                             {% if selected_genre == genre.id %}selected{% endif %}>
@@ -40,8 +40,8 @@
             </div>
 
             <div class="filter-buttons">
-                <button type="submit" class="btn-filter">Apply Filters</button>
-                <a href="/books" class="btn-reset">Reset</a>
+                <button type="submit" class="btn-filter">Застосувати</button>
+                <a href="/books" class="btn-reset">Скинути</a>
             </div>
         </form>
     </div>
@@ -53,7 +53,7 @@
             <div class="book-card">
                 <a href="/books/{{ book.id }}" class="book-link">
                     <img src="{{ book.cover_path }}"
-                         alt="Cover of {{ book.title }}"
+                         alt="Обкладинка {{ book.title }}"
                          class="book-cover">
                 </a>
 
@@ -64,12 +64,12 @@
                 <p class="book-author">
                     <a href="/authors/{{ book.author_id }}" class="author-link">{{ book.author_name }}</a>
                 </p>
-                <p class="book-genre">Genre: {{ book.genre_name }}</p>
-                <p class="book-price">Price: {{ book.price }} грн</p>
+                <p class="book-genre">Жанр: {{ book.genre_name }}</p>
+                <p class="book-price">Ціна: {{ book.price }} грн</p>
             </div>
             {% endfor %}
         {% else %}
-            <p class="no-books">No books found matching your filters.</p>
+            <p class="no-books">Книги за вашим запитом не знайдено.</p>
         {% endif %}
     </div>
 </main>

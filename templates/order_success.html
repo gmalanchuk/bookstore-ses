@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Замовлення оформлено</title>
+    <link rel="stylesheet" href="/static/checkout.css">
+</head>
+<body>
+    {% include 'include/navbar.html' %}
+
+    <div class="success-page">
+        <div class="success-container">
+            <div class="success-icon">✓</div>
+            <h1>Замовлення успішно оформлено!</h1>
+            <p class="order-number">Номер замовлення: <strong>#{{ order.id }}</strong></p>
+
+            <div class="order-details">
+                <h2>Деталі замовлення</h2>
+
+                <div class="order-info">
+                    <div class="info-row">
+                        <span>Дата замовлення:</span>
+                        <span>{{ order.created_at.strftime('%d.%m.%Y %H:%M') }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span>Спосіб оплати:</span>
+                        <span>
+                            {% if order.payment_method == 'card' %}
+                                💳 Банківська картка
+                            {% elif order.payment_method == 'cash' %}
+                                💵 Готівкою при отриманні
+                            {% elif order.payment_method == 'paypal' %}
+                                🅿️ PayPal
+                            {% else %}
+                                {{ order.payment_method }}
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span>Статус оплати:</span>
+                        <span class="status-{{ order.status }}{% if order.payment_method == 'cash' and order.status == 'pending' %} status-shipping{% endif %}">
+                            {% if order.status == 'pending' %}
+                                {% if order.payment_method == 'cash' %}
+                                    🚚 Посилка в дорозі (оплата при отриманні)
+                                {% else %}
+                                    ⏳ Очікує оплати
+                                {% endif %}
+                            {% elif order.status == 'paid' %}
+                                ✓ Оплачено
+                            {% elif order.status == 'failed' %}
+                                ✗ Помилка оплати
+                            {% else %}
+                                {{ order.status }}
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                <h3>Товари в замовленні</h3>
+                <div class="order-items">
+                    {% for item in order_items %}
+                        <div class="order-item">
+                            <img src="{{ item.cover_path }}" alt="{{ item.title }}">
+                            <div class="order-item-info">
+                                <h4>{{ item.title }}</h4>
+                                <p>{{ item.author_name }}</p>
+                                <p>Кількість: {{ item.quantity }} × {{ item.price }} грн</p>
+                            </div>
+                            <div class="order-item-total">
+                                {{ item.total_price }} грн
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="order-total">
+                    <span>Загальна сума:</span>
+                    <span>{{ order.amount }} грн</span>
+                </div>
+            </div>
+
+            <div class="success-actions">
+                <a href="/books" class="btn-primary">Продовжити покупки</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

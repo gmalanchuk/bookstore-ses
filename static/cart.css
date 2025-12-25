@@ -282,6 +282,106 @@ h1 {
     color: #1d4ed8;
 }
 
+/* ===== ORDER HISTORY ===== */
+.order-history {
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 2px solid #e5e7eb;
+}
+
+.order-history h2 {
+    font-size: 24px;
+    margin-bottom: 24px;
+    color: #111827;
+}
+
+.orders-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+}
+
+.order-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: block;
+}
+
+.order-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.order-number {
+    font-size: 16px;
+    font-weight: 700;
+    color: #2563eb;
+}
+
+.order-date {
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.order-body {
+    margin-bottom: 16px;
+}
+
+.order-info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    font-size: 14px;
+    color: #374151;
+}
+
+.order-amount {
+    font-weight: 700;
+    color: #16a34a;
+}
+
+.order-status {
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.order-status.status-pending {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.order-status.status-shipping {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.order-status.status-paid {
+    background: #d1fae5;
+    color: #059669;
+}
+
+.order-status.status-failed {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
     .cart-item {

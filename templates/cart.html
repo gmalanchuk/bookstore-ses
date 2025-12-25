@@ -73,6 +73,60 @@
                 <a href="/books">Перейти до каталогу</a>
             </div>
         {% endif %}
+
+        <!-- Історія замовлень -->
+        {% if orders %}
+            <div class="order-history">
+                <h2>Історія замовлень</h2>
+                <div class="orders-list">
+                    {% for order in orders %}
+                        <a href="/order/success/{{ order.id }}" class="order-card">
+                            <div class="order-header">
+                                <span class="order-number">Замовлення #{{ order.id }}</span>
+                                <span class="order-date">{{ order.created_at.strftime('%d.%m.%Y %H:%M') }}</span>
+                            </div>
+                            <div class="order-body">
+                                <div class="order-info-row">
+                                    <span>Кількість товарів:</span>
+                                    <span>{{ order.items_count }}</span>
+                                </div>
+                                <div class="order-info-row">
+                                    <span>Сума:</span>
+                                    <span class="order-amount">{{ order.amount }} грн</span>
+                                </div>
+                                <div class="order-info-row">
+                                    <span>Оплата:</span>
+                                    <span>
+                                        {% if order.payment_method == 'card' %}
+                                            💳 Картка
+                                        {% elif order.payment_method == 'cash' %}
+                                            💵 Готівка
+                                        {% else %}
+                                            {{ order.payment_method }}
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="order-status status-{{ order.status }}{% if order.payment_method == 'cash' and order.status == 'pending' %} status-shipping{% endif %}">
+                                {% if order.status == 'pending' %}
+                                    {% if order.payment_method == 'cash' %}
+                                        🚚 Посилка в дорозі
+                                    {% else %}
+                                        ⏳ Очікує оплати
+                                    {% endif %}
+                                {% elif order.status == 'paid' %}
+                                    ✓ Оплачено
+                                {% elif order.status == 'failed' %}
+                                    ✗ Помилка
+                                {% else %}
+                                    {{ order.status }}
+                                {% endif %}
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
     </div>
 </body>
 </html>

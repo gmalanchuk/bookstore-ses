@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оформлення замовлення</title>
+    <link rel="stylesheet" href="/static/checkout.css">
+</head>
+<body>
+    {% include 'include/navbar.html' %}
+
+    <div class="checkout-page">
+        <h1>Оформлення замовлення</h1>
+
+        <div class="checkout-container">
+            <!-- Форма оформления -->
+            <div class="checkout-form-section">
+                <h2>Контактні дані</h2>
+                <form method="post" action="/order/confirm" class="checkout-form" id="checkout-form">
+                    <div class="form-group">
+                        <label for="full_name">Повне ім'я</label>
+                        <input type="text" id="full_name" name="full_name"
+                               value="{{ user.full_name }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email"
+                               value="{{ user.email }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Телефон</label>
+                        <input type="tel" id="phone" name="phone"
+                               placeholder="+380XXXXXXXXX" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="address">Адреса доставки</label>
+                        <textarea id="address" name="address" rows="3"
+                                  placeholder="Місто, вулиця, будинок, квартира" required></textarea>
+                    </div>
+
+                    <h2>Спосіб оплати</h2>
+                    <div class="payment-methods">
+                        <label class="payment-option">
+                            <input type="radio" name="payment_method" value="card" id="payment-card" checked>
+                            <span class="payment-label">💳 Банківська картка</span>
+                        </label>
+                        <label class="payment-option">
+                            <input type="radio" name="payment_method" value="cash" id="payment-cash">
+                            <span class="payment-label">💵 Готівкою при отриманні</span>
+                        </label>
+                    </div>
+
+                    <!-- Скрытые поля для данных карты -->
+                    <input type="hidden" name="card_number" id="card_number_hidden">
+                    <input type="hidden" name="card_expiry" id="card_expiry_hidden">
+                    <input type="hidden" name="card_cvv" id="card_cvv_hidden">
+
+                    <button type="submit" class="confirm-btn">Підтвердити замовлення</button>
+                </form>
+            </div>
+
+            <!-- Сводка заказа -->
+            <div class="order-summary">
+                <h2>Ваше замовлення</h2>
+
+                <div class="summary-items">
+                    {% for item in cart_items %}
+                        <div class="summary-item">
+                            <img src="{{ item.cover_path }}" alt="{{ item.title }}">
+                            <div class="summary-item-info">
+                                <h4>{{ item.title }}</h4>
+                                <p>{{ item.author_name }}</p>
+                                <p class="item-qty">Кількість: {{ item.quantity }}</p>
+                            </div>
+                            <div class="summary-item-price">
+                                {{ item.total_price }} грн
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="summary-totals">
+                    <div class="summary-row">
+                        <span>Кількість книг:</span>
+                        <span>{{ total_items }}</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Загальна сума:</span>
+                        <span>{{ total_cost }} грн</span>
+                    </div>
+                </div>
+
+                <a href="/cart" class="back-link">← Повернутися до кошика</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для ввода данных карты -->
+    <div class="modal-overlay" id="card-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>💳 Введіть дані картки</h2>
+                <button type="button" class="modal-close" id="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="card_number">Номер картки</label>
+                    <input type="text" id="card_number" placeholder="1234 5678 9012 3456"
+                           maxlength="19" autocomplete="cc-number">
+                </div>
+                <div class="card-row">
+                    <div class="form-group">
+                        <label for="card_expiry">Термін дії</label>
+                        <input type="text" id="card_expiry" placeholder="MM/YY"
+                               maxlength="5" autocomplete="cc-exp">
+                    </div>
+                    <div class="form-group">
+                        <label for="card_cvv">CVV</label>
+                        <input type="text" id="card_cvv" placeholder="123"
+                               maxlength="3" autocomplete="cc-csc">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="card_holder">Ім'я власника картки</label>
+                    <input type="text" id="card_holder" placeholder="IVAN PETRENKO"
+                           autocomplete="cc-name">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" id="btn-cancel">Скасувати</button>
+                <button type="button" class="btn-pay" id="btn-pay">Оплатити {{ total_cost }} грн</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('checkout-form');
+        const modal = document.getElementById('card-modal');
+        const modalClose = document.getElementById('modal-close');
+        const btnCancel = document.getElementById('btn-cancel');
+        const btnPay = document.getElementById('btn-pay');
+        const paymentCard = document.getElementById('payment-card');
+        const paymentCash = document.getElementById('payment-cash');
+
+        // Поля карты
+        const cardNumber = document.getElementById('card_number');
+        const cardExpiry = document.getElementById('card_expiry');
+        const cardCvv = document.getElementById('card_cvv');
+        const cardHolder = document.getElementById('card_holder');
+
+        // Скрытые поля формы
+        const cardNumberHidden = document.getElementById('card_number_hidden');
+        const cardExpiryHidden = document.getElementById('card_expiry_hidden');
+        const cardCvvHidden = document.getElementById('card_cvv_hidden');
+
+        // Форматирование номера карты
+        cardNumber.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            value = value.replace(/(\d{4})(?=\d)/g, '$1 ');
+            e.target.value = value.substring(0, 19);
+        });
+
+        // Форматирование срока действия
+        cardExpiry.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2);
+            }
+            e.target.value = value.substring(0, 5);
+        });
+
+        // Только цифры для CVV
+        cardCvv.addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/\D/g, '').substring(0, 3);
+        });
+
+        // Обработка отправки формы
+        form.addEventListener('submit', function(e) {
+            if (paymentCard.checked) {
+                e.preventDefault();
+                openModal();
+            }
+        });
+
+        function openModal() {
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            cardNumber.focus();
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        modalClose.addEventListener('click', closeModal);
+        btnCancel.addEventListener('click', closeModal);
+
+        // Закрытие по клику на overlay
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+
+        // Закрытие по Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && modal.classList.contains('active')) {
+                closeModal();
+            }
+        });
+
+        // Оплата картой
+        btnPay.addEventListener('click', function() {
+            // Валидация
+            const cardNum = cardNumber.value.replace(/\s/g, '');
+            const expiry = cardExpiry.value;
+            const cvv = cardCvv.value;
+            const holder = cardHolder.value.trim();
+
+            if (cardNum.length < 16) {
+                alert('Введіть коректний номер картки');
+                cardNumber.focus();
+                return;
+            }
+            if (expiry.length < 5) {
+                alert('Введіть термін дії картки');
+                cardExpiry.focus();
+                return;
+            }
+            if (cvv.length < 3) {
+                alert('Введіть CVV код');
+                cardCvv.focus();
+                return;
+            }
+            if (!holder) {
+                alert("Введіть ім'я власника картки");
+                cardHolder.focus();
+                return;
+            }
+
+            // Сохраняем данные в скрытые поля (последние 4 цифры для безопасности)
+            cardNumberHidden.value = '**** **** **** ' + cardNum.slice(-4);
+            cardExpiryHidden.value = expiry;
+            cardCvvHidden.value = '***';
+
+            closeModal();
+            form.submit();
+        });
+    </script>
+</body>
+</html>

@@ -90,14 +90,14 @@
     if (userId) {
         // Пользователь залогинен
         navActions.innerHTML = `
-            <a href="/cart" class="cart-btn">🛒 Cart</a>
-            <a href="/logout" class="auth-btn logout-btn">Logout</a>
+            <a href="/cart" class="cart-btn">🛒 Кошик</a>
+            <a href="/logout" class="auth-btn logout-btn">Вийти</a>
         `;
     } else {
         // Пользователь не залогинен
         navActions.innerHTML = `
-            <a href="/login" class="auth-btn">Login</a>
-            <a href="/register" class="auth-btn">Register</a>
+            <a href="/login" class="auth-btn">Увійти</a>
+            <a href="/register" class="auth-btn">Реєстрація</a>
         `;
     }
 </script>

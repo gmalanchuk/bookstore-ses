@@ -385,11 +385,33 @@ async def view_cart(request: Request):
         # Общее количество книг
         total_items = sum(item['quantity'] for item in cart_list)
 
+        # Получаем историю заказов пользователя
+        orders = await conn.fetch(
+            """
+            SELECT 
+                o.id,
+                o.created_at,
+                p.amount,
+                p.status,
+                p.payment_method,
+                COUNT(oi.id) as items_count
+            FROM orders o
+            JOIN payments p ON p.order_id = o.id
+            JOIN order_items oi ON oi.order_id = o.id
+            WHERE o.user_id = $1
+            GROUP BY o.id, o.created_at, p.amount, p.status, p.payment_method
+            ORDER BY o.created_at DESC;
+            """,
+            int(user_id)
+        )
+        orders_list = [dict(order) for order in orders]
+
     return templates.TemplateResponse("cart.html", {
         "request": request,
         "cart_items": cart_list,
         "total_cost": total_cost,
-        "total_items": total_items
+        "total_items": total_items,
+        "orders": orders_list
     })
 
 
@@ -439,3 +461,196 @@ async def update_cart_quantity(
         )
 
     return RedirectResponse(url="/cart", status_code=303)
+
+
+# Страница оформления заказа
+@app.post("/order/create", response_class=HTMLResponse)
+async def order_create_page(request: Request):
+    user_id = request.cookies.get("user_id")
+
+    if not user_id:
+        return RedirectResponse(url="/login", status_code=303)
+
+    async with app.state.db.acquire() as conn:
+        # Получаем товары из корзины
+        cart_items = await conn.fetch(
+            """
+            SELECT 
+                c.id as cart_id,
+                c.quantity,
+                b.id as book_id,
+                b.title,
+                b.price,
+                b.cover_path,
+                b.stock_quantity,
+                a.full_name as author_name,
+                (b.price * c.quantity) as total_price
+            FROM cart c
+            JOIN books b ON c.book_id = b.id
+            JOIN authors a ON b.author_id = a.id
+            WHERE c.user_id = $1
+            ORDER BY c.added_at DESC;
+            """,
+            int(user_id)
+        )
+
+        if not cart_items:
+            return RedirectResponse(url="/cart", status_code=303)
+
+        cart_list = [dict(item) for item in cart_items]
+        total_cost = sum(item['total_price'] for item in cart_list)
+        total_items = sum(item['quantity'] for item in cart_list)
+
+        # Получаем данные пользователя
+        user = await conn.fetchrow(
+            "SELECT full_name, email FROM users WHERE id = $1;",
+            int(user_id)
+        )
+
+    return templates.TemplateResponse("checkout.html", {
+        "request": request,
+        "cart_items": cart_list,
+        "total_cost": total_cost,
+        "total_items": total_items,
+        "user": dict(user) if user else {}
+    })
+
+
+# Подтверждение заказа
+@app.post("/order/confirm")
+async def order_confirm(
+    request: Request,
+    full_name: str = Form(...),
+    email: str = Form(...),
+    phone: str = Form(...),
+    address: str = Form(...),
+    payment_method: str = Form(...)
+):
+    user_id = request.cookies.get("user_id")
+
+    if not user_id:
+        return RedirectResponse(url="/login", status_code=303)
+
+    async with app.state.db.acquire() as conn:
+        # Получаем товары из корзины
+        cart_items = await conn.fetch(
+            """
+            SELECT 
+                c.id as cart_id,
+                c.quantity,
+                b.id as book_id,
+                b.price,
+                b.stock_quantity
+            FROM cart c
+            JOIN books b ON c.book_id = b.id
+            WHERE c.user_id = $1;
+            """,
+            int(user_id)
+        )
+
+        if not cart_items:
+            return RedirectResponse(url="/cart", status_code=303)
+
+        # Проверяем наличие товаров на складе
+        for item in cart_items:
+            if item['quantity'] > item['stock_quantity']:
+                return RedirectResponse(url="/cart", status_code=303)
+
+        # Вычисляем общую сумму
+        total_amount = sum(item['price'] * item['quantity'] for item in cart_items)
+
+        # Создаем заказ
+        order = await conn.fetchrow(
+            """
+            INSERT INTO orders (user_id, created_at)
+            VALUES ($1, CURRENT_TIMESTAMP)
+            RETURNING id;
+            """,
+            int(user_id)
+        )
+        order_id = order['id']
+
+        # Добавляем товары в заказ
+        for item in cart_items:
+            await conn.execute(
+                """
+                INSERT INTO order_items (order_id, book_id, quantity, price)
+                VALUES ($1, $2, $3, $4);
+                """,
+                order_id, item['book_id'], item['quantity'], item['price']
+            )
+
+            # Уменьшаем количество на складе
+            await conn.execute(
+                """
+                UPDATE books 
+                SET stock_quantity = stock_quantity - $1 
+                WHERE id = $2;
+                """,
+                item['quantity'], item['book_id']
+            )
+
+        # Создаем запись об оплате
+        await conn.execute(
+            """
+            INSERT INTO payments (order_id, amount, payment_method, status)
+            VALUES ($1, $2, $3, 'pending');
+            """,
+            order_id, total_amount, payment_method
+        )
+
+        # Очищаем корзину
+        await conn.execute(
+            "DELETE FROM cart WHERE user_id = $1;",
+            int(user_id)
+        )
+
+    return RedirectResponse(url=f"/order/success/{order_id}", status_code=303)
+
+
+# Страница успешного заказа
+@app.get("/order/success/{order_id}", response_class=HTMLResponse)
+async def order_success(request: Request, order_id: int):
+    user_id = request.cookies.get("user_id")
+
+    if not user_id:
+        return RedirectResponse(url="/login", status_code=303)
+
+    async with app.state.db.acquire() as conn:
+        # Получаем информацию о заказе
+        order = await conn.fetchrow(
+            """
+            SELECT o.id, o.created_at, p.amount, p.payment_method, p.status
+            FROM orders o
+            JOIN payments p ON p.order_id = o.id
+            WHERE o.id = $1 AND o.user_id = $2;
+            """,
+            order_id, int(user_id)
+        )
+
+        if not order:
+            return HTMLResponse(content="Замовлення не знайдено", status_code=404)
+
+        # Получаем товары заказа
+        order_items = await conn.fetch(
+            """
+            SELECT 
+                oi.quantity,
+                oi.price,
+                b.title,
+                b.cover_path,
+                a.full_name as author_name,
+                (oi.price * oi.quantity) as total_price
+            FROM order_items oi
+            JOIN books b ON oi.book_id = b.id
+            JOIN authors a ON b.author_id = a.id
+            WHERE oi.order_id = $1;
+            """,
+            order_id
+        )
+
+    return templates.TemplateResponse("order_success.html", {
+        "request": request,
+        "order": dict(order),
+        "order_items": [dict(item) for item in order_items]
+    })
