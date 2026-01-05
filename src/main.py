@@ -28,8 +28,8 @@ async def get_books(
     query = """
         SELECT b.id, b.title, b.price, b.author_id, b.cover_path, a.full_name, g.name
         FROM books b
-        JOIN authors a ON b.author_id = a.id  -- todo книга підтягує автора
-        JOIN genres g ON b.genre_id = g.id  -- todo книга підтягує жанр
+        JOIN authors a ON b.author_id = a.id  -- todo книга підтягує автора (ім'я)
+        JOIN genres g ON b.genre_id = g.id  -- todo книга підтягує жанр (назва)
         WHERE 1=1  -- todo потрібен щоб запити знизу для фільтрів можна було писати просто через AND
     """
     params = []
@@ -79,7 +79,7 @@ async def get_books(
 # Інформація про книгу
 @app.get("/books/{book_id}", response_class=HTMLResponse)
 async def book_detail(request: Request, book_id: int):
-    # Отримуємо user_id з cookies
+    # отримуємо user_id з cookies
     user_id = request.cookies.get("user_id")
 
     # Запит з JOIN для отримання назв замість ID
