@@ -293,6 +293,8 @@ async def login(
     redirect = RedirectResponse(url="/books", status_code=303)
     redirect.set_cookie(key="user_id", value=str(user['id']))
     redirect.set_cookie(key="user_name", value=quote(user['full_name']))
+    # Додаємо роль користувача для умовного відображення кнопки Адмін панелі
+    redirect.set_cookie(key="user_role", value=str(user['role']))
 
     return redirect
 
@@ -303,6 +305,8 @@ async def logout():
     redirect = RedirectResponse(url="/books", status_code=303)
     redirect.delete_cookie(key="user_id")
     redirect.delete_cookie(key="user_name")
+    # Видаляємо також роль користувача
+    redirect.delete_cookie(key="user_role")
     return redirect
 
 

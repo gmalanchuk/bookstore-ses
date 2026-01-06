@@ -1,4 +1,4 @@
-<!-- templates/navbar.html -->
+<!-- templates/include/navbar.html -->
 <style>
 /* ===== НАВІГАЦІЙНА ПАНЕЛЬ ===== */
 .navbar {
@@ -30,27 +30,33 @@
     align-items: center;
 }
 
-.cart-btn, .auth-btn {
+.cart-btn, .auth-btn, .admin-btn {
     padding: 8px 16px;
     border-radius: 8px;
     color: #ffffff;
     text-decoration: none;
     font-weight: 500;
     transition: all 0.2s ease;
-}
-
-.cart-btn, .auth-btn {
     background: #2563eb;
 }
 
-.cart-btn:hover, .auth-btn:hover {
+.cart-btn:hover, .auth-btn:hover, .admin-btn:hover {
     background: #1d4ed8;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
-.cart-btn:active, .auth-btn:active {
+.cart-btn:active, .auth-btn:active, .admin-btn:active {
     transform: translateY(0);
+}
+
+.admin-btn {
+    background: #059669;
+}
+
+.admin-btn:hover {
+    background: #047857;
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
 }
 
 .logout-btn {
@@ -94,7 +100,7 @@
 
         // Якщо адмін - показуємо посилання на адмін панель
         if (userRole === 'admin') {
-            navHtml += `<a href="/admin" class="auth-btn admin-btn">⚙️ Адмін</a>`;
+            navHtml += `<a href="/admin" class="admin-btn">⚙️ Адмін панель</a>`;
         }
 
         navHtml += `<a href="/logout" class="auth-btn logout-btn">Вийти</a>`;
