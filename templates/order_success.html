@@ -39,19 +39,21 @@
                     </div>
                     <div class="info-row">
                         <span>Статус оплати:</span>
-                        <span class="status-{{ order.status }}{% if order.payment_method == 'cash' and order.status == 'pending' %} status-shipping{% endif %}">
-                            {% if order.status == 'pending' %}
+                        <span class="status-{{ order.payment_status }}{% if order.payment_method == 'cash' and order.payment_status == 'pending' %} status-shipping{% endif %}">
+                            {% if order.payment_status == 'pending' %}
                                 {% if order.payment_method == 'cash' %}
                                     🚚 Посилка в дорозі (оплата при отриманні)
                                 {% else %}
                                     ⏳ Очікує оплати
                                 {% endif %}
-                            {% elif order.status == 'paid' %}
+                            {% elif order.payment_status == 'paid' %}
                                 ✓ Оплачено
-                            {% elif order.status == 'failed' %}
+                            {% elif order.payment_status == 'failed' %}
                                 ✗ Помилка оплати
+                            {% elif order.payment_status == 'refunded' %}
+                                ↩️ Повернуто
                             {% else %}
-                                {{ order.status }}
+                                {{ order.payment_status }}
                             {% endif %}
                         </span>
                     </div>
