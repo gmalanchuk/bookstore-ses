@@ -393,14 +393,15 @@ async def view_cart(request: Request):
                 o.id,
                 o.created_at,
                 p.amount,
-                p.status,
+                o.payment_status,
+                o.delivery_status,
                 p.payment_method,
                 COUNT(oi.id) as items_count
             FROM orders o
             JOIN payments p ON p.order_id = o.id
             JOIN order_items oi ON oi.order_id = o.id
             WHERE o.user_id = $1
-            GROUP BY o.id, o.created_at, p.amount, p.status, p.payment_method
+            GROUP BY o.id, o.created_at, p.amount, o.payment_status, o.delivery_status, p.payment_method
             ORDER BY o.created_at DESC;
             """,
             int(user_id)
@@ -621,7 +622,7 @@ async def order_success(request: Request, order_id: int):
         # Отримуємо інформацію про замовлення
         order = await conn.fetchrow(
             """
-            SELECT o.id, o.created_at, p.amount, p.payment_method, p.status
+            SELECT o.id, o.created_at, p.amount, p.payment_method, o.payment_status, o.delivery_status
             FROM orders o
             JOIN payments p ON p.order_id = o.id
             WHERE o.id = $1 AND o.user_id = $2;
@@ -655,3 +656,93 @@ async def order_success(request: Request, order_id: int):
         "order": dict(order),
         "order_items": [dict(item) for item in order_items]
     })
+
+
+
+
+# ===== АДМІН ПАНЕЛЬ =====
+
+# Сторінка адміністратора
+@app.get("/admin", response_class=HTMLResponse)
+async def admin_page(request: Request):
+    user_id = request.cookies.get("user_id")
+
+    if not user_id:
+        return RedirectResponse(url="/login", status_code=303)
+
+    async with app.state.db.acquire() as conn:
+        # Перевіряємо роль користувача
+        user = await conn.fetchrow(
+            "SELECT role FROM users WHERE id = $1;",
+            int(user_id)
+        )
+
+        if not user or user['role'] != 'admin':
+            return HTMLResponse(content="Доступ заборонено", status_code=403)
+
+        # Отримуємо всі замовлення з інформацією про користувачів
+        orders = await conn.fetch(
+            """
+            SELECT 
+                o.id,
+                o.created_at,
+                o.payment_status,
+                o.delivery_status,
+                u.full_name as user_name,
+                u.email as user_email,
+                COALESCE(SUM(oi.price * oi.quantity), 0) as total_amount
+            FROM orders o
+            JOIN users u ON o.user_id = u.id
+            LEFT JOIN order_items oi ON oi.order_id = o.id
+            GROUP BY o.id, o.created_at, o.payment_status, o.delivery_status, u.full_name, u.email
+            ORDER BY o.created_at DESC;
+            """
+        )
+
+    return templates.TemplateResponse("admin.html", {
+        "request": request,
+        "orders": [dict(order) for order in orders]
+    })
+
+
+# Оновлення статусу замовлення
+@app.post("/admin/orders/{order_id}/update")
+async def admin_update_order(
+    request: Request,
+    order_id: int,
+    payment_status: str = Form(...),
+    delivery_status: str = Form(...)
+):
+    user_id = request.cookies.get("user_id")
+
+    if not user_id:
+        return RedirectResponse(url="/login", status_code=303)
+
+    # Перевіряємо допустимі значення статусів
+    valid_payment_statuses = ['pending', 'paid', 'refunded', 'failed']
+    valid_delivery_statuses = ['processing', 'shipped', 'delivered', 'cancelled']
+
+    if payment_status not in valid_payment_statuses or delivery_status not in valid_delivery_statuses:
+        return RedirectResponse(url="/admin", status_code=303)
+
+    async with app.state.db.acquire() as conn:
+        # Перевіряємо роль користувача
+        user = await conn.fetchrow(
+            "SELECT role FROM users WHERE id = $1;",
+            int(user_id)
+        )
+
+        if not user or user['role'] != 'admin':
+            return HTMLResponse(content="Доступ заборонено", status_code=403)
+
+        # Оновлюємо статуси замовлення
+        await conn.execute(
+            """
+            UPDATE orders 
+            SET payment_status = $1, delivery_status = $2 
+            WHERE id = $3;
+            """,
+            payment_status, delivery_status, order_id
+        )
+
+    return RedirectResponse(url="/admin", status_code=303)

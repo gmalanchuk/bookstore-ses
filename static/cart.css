@@ -382,6 +382,73 @@ h1 {
     color: #dc2626;
 }
 
+/* ===== ORDER STATUSES (payment & delivery) ===== */
+.order-statuses {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.status-item {
+    flex: 1;
+    min-width: 140px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.status-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    opacity: 0.8;
+    margin-bottom: 4px;
+}
+
+/* Payment statuses */
+.status-payment-pending {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.status-payment-paid {
+    background: #d1fae5;
+    color: #059669;
+}
+
+.status-payment-refunded {
+    background: #e0e7ff;
+    color: #4338ca;
+}
+
+.status-payment-failed {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+/* Delivery statuses */
+.status-delivery-processing {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.status-delivery-shipped {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.status-delivery-delivered {
+    background: #d1fae5;
+    color: #059669;
+}
+
+.status-delivery-cancelled {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
     .cart-item {

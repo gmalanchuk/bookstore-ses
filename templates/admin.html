@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Адмін панель - BookStore</title>
+    <link rel="stylesheet" href="/static/admin.css">
+</head>
+<body>
+    {% include 'include/navbar.html' %}
+
+    <div class="admin-container">
+        <h1>Панель адміністратора</h1>
+        <p class="subtitle">Управління замовленнями</p>
+
+        {% if orders %}
+        <div class="orders-table-wrapper">
+            <table class="orders-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Користувач</th>
+                        <th>Email</th>
+                        <th>Дата</th>
+                        <th>Сума</th>
+                        <th>Статус оплати</th>
+                        <th>Статус доставки</th>
+                        <th>Дії</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>#{{ order.id }}</td>
+                        <td>{{ order.user_name }}</td>
+                        <td>{{ order.user_email }}</td>
+                        <td>{{ order.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                        <td class="amount">{{ "%.2f"|format(order.total_amount) }} грн</td>
+                        <td>
+                            <span class="status-badge status-{{ order.payment_status }}">
+                                {{ order.payment_status }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="status-badge status-{{ order.delivery_status }}">
+                                {{ order.delivery_status }}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="edit-btn" onclick="openModal({{ order.id }}, '{{ order.payment_status }}', '{{ order.delivery_status }}')">
+                                ✏️ Редагувати
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="no-orders">
+            <p>Замовлень поки немає</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Модальне вікно для редагування -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Редагування замовлення #<span id="modalOrderId"></span></h2>
+
+            <form id="editForm" method="POST">
+                <div class="form-group">
+                    <label for="payment_status">Статус оплати:</label>
+                    <select name="payment_status" id="payment_status">
+                        <option value="pending">pending (очікує)</option>
+                        <option value="paid">paid (оплачено)</option>
+                        <option value="refunded">refunded (повернуто)</option>
+                        <option value="failed">failed (невдала)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="delivery_status">Статус доставки:</label>
+                    <select name="delivery_status" id="delivery_status">
+                        <option value="processing">processing (обробка)</option>
+                        <option value="shipped">shipped (відправлено)</option>
+                        <option value="delivered">delivered (доставлено)</option>
+                        <option value="cancelled">cancelled (скасовано)</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="save-btn">Зберегти зміни</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openModal(orderId, paymentStatus, deliveryStatus) {
+            document.getElementById('editModal').style.display = 'block';
+            document.getElementById('modalOrderId').textContent = orderId;
+            document.getElementById('payment_status').value = paymentStatus;
+            document.getElementById('delivery_status').value = deliveryStatus;
+            document.getElementById('editForm').action = '/admin/orders/' + orderId + '/update';
+        }
+
+        function closeModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        // Закриття модального вікна при кліку поза ним
+        window.onclick = function(event) {
+            const modal = document.getElementById('editModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>
+

@@ -85,14 +85,20 @@
 
     // Перевіряємо чи користувач залогінений
     const userId = getCookie('user_id');
+    const userRole = getCookie('user_role');
     const navActions = document.getElementById('navActions');
 
     if (userId) {
         // Користувач залогінений
-        navActions.innerHTML = `
-            <a href="/cart" class="cart-btn">🛒 Кошик</a>
-            <a href="/logout" class="auth-btn logout-btn">Вийти</a>
-        `;
+        let navHtml = `<a href="/cart" class="cart-btn">🛒 Кошик</a>`;
+
+        // Якщо адмін - показуємо посилання на адмін панель
+        if (userRole === 'admin') {
+            navHtml += `<a href="/admin" class="auth-btn admin-btn">⚙️ Адмін</a>`;
+        }
+
+        navHtml += `<a href="/logout" class="auth-btn logout-btn">Вийти</a>`;
+        navActions.innerHTML = navHtml;
     } else {
         // Користувач не залогінений
         navActions.innerHTML = `
