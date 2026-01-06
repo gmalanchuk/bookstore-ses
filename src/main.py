@@ -594,8 +594,8 @@ async def order_confirm(
         # Створюємо запис про оплату
         await conn.execute(
             """
-            INSERT INTO payments (order_id, amount, payment_method, status)
-            VALUES ($1, $2, $3, 'pending');
+            INSERT INTO payments (order_id, amount, payment_method)
+            VALUES ($1, $2, $3);
             """,
             order_id, total_amount, payment_method
         )

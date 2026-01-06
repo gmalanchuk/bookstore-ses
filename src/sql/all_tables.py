@@ -47,7 +47,9 @@ CREATE TABLE IF NOT EXISTS reviews (
 CREATE TABLE IF NOT EXISTS orders (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL REFERENCES users(id),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    payment_status VARCHAR(50) NOT NULL DEFAULT 'pending' CHECK (payment_status IN ('pending', 'paid', 'refunded', 'failed')),
+    delivery_status VARCHAR(50) NOT NULL DEFAULT 'processing' CHECK (delivery_status IN ('processing', 'shipped', 'delivered', 'cancelled'))
 );
 
 CREATE TABLE IF NOT EXISTS order_items (
@@ -62,8 +64,7 @@ CREATE TABLE IF NOT EXISTS payments (
     id SERIAL PRIMARY KEY,
     order_id INT NOT NULL REFERENCES orders(id),
     amount DECIMAL(10,2) NOT NULL,
-    payment_method VARCHAR(50) NOT NULL DEFAULT 'paypal',
-    status VARCHAR(50) NOT NULL DEFAULT 'pending'
+    payment_method VARCHAR(50) NOT NULL DEFAULT 'paypal'
 );
 
 CREATE TABLE IF NOT EXISTS cart (
