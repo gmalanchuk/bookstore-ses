@@ -9,6 +9,19 @@
 <body>
     {% include 'include/navbar.html' %}
 
+    {% set payment_labels = {
+        'pending': 'Очікує',
+        'paid': 'Оплачено',
+        'refunded': 'Повернуто',
+        'failed': 'Помилка'
+    } %}
+    {% set delivery_labels = {
+        'processing': 'Обробка',
+        'shipped': 'Відправлено',
+        'delivered': 'Доставлено',
+        'cancelled': 'Скасовано'
+    } %}
+
     <div class="admin-container">
         <h1>Панель адміністратора</h1>
         <p class="subtitle">Управління замовленнями</p>
@@ -38,12 +51,12 @@
                         <td class="amount">{{ "%.2f"|format(order.total_amount) }} грн</td>
                         <td>
                             <span class="status-badge status-{{ order.payment_status }}">
-                                {{ order.payment_status }}
+                                {{ payment_labels.get(order.payment_status, 'Невідомо') }}
                             </span>
                         </td>
                         <td>
                             <span class="status-badge status-{{ order.delivery_status }}">
-                                {{ order.delivery_status }}
+                                {{ delivery_labels.get(order.delivery_status, 'Невідомо') }}
                             </span>
                         </td>
                         <td>
@@ -73,20 +86,20 @@
                 <div class="form-group">
                     <label for="payment_status">Статус оплати:</label>
                     <select name="payment_status" id="payment_status">
-                        <option value="pending">pending (очікує)</option>
-                        <option value="paid">paid (оплачено)</option>
-                        <option value="refunded">refunded (повернуто)</option>
-                        <option value="failed">failed (невдала)</option>
+                        <option value="pending">Очікує</option>
+                        <option value="paid">Оплачено</option>
+                        <option value="refunded">Повернуто</option>
+                        <option value="failed">Помилка</option>
                     </select>
                 </div>
 
                 <div class="form-group">
                     <label for="delivery_status">Статус доставки:</label>
                     <select name="delivery_status" id="delivery_status">
-                        <option value="processing">processing (обробка)</option>
-                        <option value="shipped">shipped (відправлено)</option>
-                        <option value="delivered">delivered (доставлено)</option>
-                        <option value="cancelled">cancelled (скасовано)</option>
+                        <option value="processing">Обробка</option>
+                        <option value="shipped">Відправлено</option>
+                        <option value="delivered">Доставлено</option>
+                        <option value="cancelled">Скасовано</option>
                     </select>
                 </div>
 
@@ -118,4 +131,3 @@
     </script>
 </body>
 </html>
-
