@@ -76,13 +76,13 @@ async def get_books(
     })
 
 
-# Інформація про книгу
+# детальна інформація про книгу
 @app.get("/books/{book_id}", response_class=HTMLResponse)
 async def book_detail(request: Request, book_id: int):
     # отримуємо user_id з cookies
     user_id = request.cookies.get("user_id")
 
-    # Запит з JOIN для отримання назв замість ID
+    # отримання інформації про книгу
     query = """
         SELECT 
             b.id, b.title, b.description, b.price, b.publication_year, 
@@ -97,7 +97,7 @@ async def book_detail(request: Request, book_id: int):
         WHERE b.id = $1;
     """
 
-    # Запит для отримання відгуків
+    # отримання відгуків
     reviews_query = """
         SELECT 
             r.id, r.rating, r.comment_text,
@@ -106,26 +106,25 @@ async def book_detail(request: Request, book_id: int):
         FROM reviews r
         JOIN users u ON r.user_id = u.id
         WHERE r.book_id = $1
-        ORDER BY r.id DESC;
+        ORDER BY r.id DESC; -- найновіші відгуки зверху
     """
 
     async with app.state.db.acquire() as conn:
-        row = await conn.fetchrow(query, book_id)
+        book_row = await conn.fetchrow(query, book_id)
         reviews_rows = await conn.fetch(reviews_query, book_id)
 
-    if not row:
+    if not book_row:
         return HTMLResponse(content="Книга не знайдена", status_code=404)
 
-    # Перетворюємо результат у словник для зручності Jinja
-    book_data = dict(row)
+    # перетворення результату у словник для jinja
+    book_data = dict(book_row)
     reviews_data = [dict(r) for r in reviews_rows]
 
-    # Перевіряємо, чи залишав поточний користувач відгук
+    # чи залишав поточний користувач відгук
     user_has_review = False
     if user_id:
         user_has_review = any(r['user_id'] == int(user_id) for r in reviews_data)
 
-    # Повертаємо шаблон
     return templates.TemplateResponse(
         "book_detail.html",
         {
@@ -138,7 +137,7 @@ async def book_detail(request: Request, book_id: int):
     )
 
 
-# Додавання відгуку
+# додавання відгуку
 @app.post("/books/{book_id}/review")
 async def add_review(
     request: Request,
@@ -146,52 +145,51 @@ async def add_review(
     rating: int = Form(...),
     comment_text: str = Form("")
 ):
-    # Отримуємо user_id з cookies
     user_id = request.cookies.get("user_id")
 
-    # Якщо користувач не залогінений, перенаправляємо на логін
     if not user_id:
         return RedirectResponse(url="/login", status_code=303)
 
-    # Перевіряємо коректність рейтингу
-    if rating < 1 or rating > 5:
-        return RedirectResponse(url=f"/books/{book_id}", status_code=303)
+    # todo код в коментарях потрібен для API, але тут при веб-інтерфейсі він не потрібен
+    # коректність рейтингу
+    # if rating < 1 or rating > 5:
+    #     return RedirectResponse(url=f"/books/{book_id}", status_code=303)
 
     async with app.state.db.acquire() as conn:
-        # Перевіряємо, чи не залишав користувач вже відгук
-        existing_review = await conn.fetchrow(
-            "SELECT id FROM reviews WHERE book_id = $1 AND user_id = $2;",
-            book_id, int(user_id)
-        )
+        # # перевіряємо, чи не залишав користувач вже відгук
+        # existing_review = await conn.fetchrow(
+        #     "SELECT id FROM reviews WHERE book_id = $1 AND user_id = $2;",
+        #     book_id, int(user_id)
+        # )
+        #
+        # if existing_review:
+        #     # оновлюємо існуючий відгук
+        #     await conn.execute(
+        #         """
+        #         UPDATE reviews
+        #         SET rating = $1, comment_text = $2
+        #         WHERE book_id = $3 AND user_id = $4;
+        #         """,
+        #         rating, comment_text, book_id, int(user_id)
+        #     )
+        # else:
 
-        if existing_review:
-            # Оновлюємо існуючий відгук
-            await conn.execute(
-                """
-                UPDATE reviews 
-                SET rating = $1, comment_text = $2 
-                WHERE book_id = $3 AND user_id = $4;
-                """,
-                rating, comment_text, book_id, int(user_id)
-            )
-        else:
-            # Створюємо новий відгук
-            await conn.execute(
-                """
-                INSERT INTO reviews (book_id, user_id, rating, comment_text)
-                VALUES ($1, $2, $3, $4);
-                """,
-                book_id, int(user_id), rating, comment_text
-            )
+        # створення відгука
+        await conn.execute(
+            """
+            INSERT INTO reviews (book_id, user_id, rating, comment_text)
+            VALUES ($1, $2, $3, $4);
+            """,
+            book_id, int(user_id), rating, comment_text
+        )
 
     return RedirectResponse(url=f"/books/{book_id}", status_code=303)
 
 
-# Інформація про автора
+# детальна інформація про автора
 @app.get("/authors/{author_id}", response_class=HTMLResponse)
 async def author_detail(request: Request, author_id: int):
     async with app.state.db.acquire() as conn:
-        # Отримуємо інформацію про автора
         author_row = await conn.fetchrow(
             "SELECT id, full_name, description FROM authors WHERE id = $1;",
             author_id
@@ -200,10 +198,11 @@ async def author_detail(request: Request, author_id: int):
         if not author_row:
             return HTMLResponse(content="Автора не знайдено", status_code=404)
 
-        # Отримуємо всі книги автора
+        # отримання всіх книг автора
         books_rows = await conn.fetch(
             """
-            SELECT b.id, b.title, b.price, b.cover_path, g.name as genre_name
+            SELECT b.id, b.title, b.price, b.cover_path,
+            g.name as genre_name
             FROM books b
             JOIN genres g ON b.genre_id = g.id
             WHERE b.author_id = $1
@@ -221,13 +220,13 @@ async def author_detail(request: Request, author_id: int):
     )
 
 
-# Сторінка реєстрації
+# сторінка реєстрації
 @app.get("/register", response_class=HTMLResponse)
 async def register_page(request: Request):
     return templates.TemplateResponse("register.html", {"request": request})
 
 
-# Обробка реєстрації
+# обробка реєстрації
 @app.post("/register")
 async def register(
         request: Request,
@@ -236,7 +235,7 @@ async def register(
         password: str = Form(...)
 ):
     async with app.state.db.acquire() as conn:
-        # Перевіряємо, чи існує email
+        # перевірка, чи існує email
         existing_user = await conn.fetchrow(
             "SELECT id FROM users WHERE email = $1;", email
         )
@@ -247,7 +246,7 @@ async def register(
                 {"request": request, "error": "Цей email вже зареєстрований"}
             )
 
-        # Створюємо нового користувача
+        # створення нового користувача
         await conn.execute(
             """
             INSERT INTO users (full_name, email, password, role)
@@ -256,16 +255,16 @@ async def register(
             full_name, email, password
         )
 
-    # Перенаправляємо на сторінку логіну
     return RedirectResponse(url="/login", status_code=303)
 
 
-# Сторінка логіну
+# сторінка логіну
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
 
+# обробка логіну
 @app.post("/login")
 async def login(
     response: Response,
@@ -278,7 +277,7 @@ async def login(
             """
             SELECT id, full_name, email, role 
             FROM users 
-            WHERE email = $1 AND password = $2;
+            WHERE email = $1 AND password = $2; -- вибір користувача за двома полями, тому що введений користувачем пароль може не співпадати з тим, що зберігається в бд
             """,
             email, password
         )
@@ -289,55 +288,48 @@ async def login(
             {"request": request, "error": "Невірний email або пароль"}
         )
 
-    # Створюємо cookie з user_id та кодуємо ім'я в URL-безпечний формат
     redirect = RedirectResponse(url="/books", status_code=303)
     redirect.set_cookie(key="user_id", value=str(user['id']))
     redirect.set_cookie(key="user_name", value=quote(user['full_name']))
-    # Додаємо роль користувача для умовного відображення кнопки Адмін панелі
     redirect.set_cookie(key="user_role", value=str(user['role']))
 
     return redirect
 
 
-# Вихід з системи
 @app.get("/logout")
 async def logout():
     redirect = RedirectResponse(url="/books", status_code=303)
     redirect.delete_cookie(key="user_id")
     redirect.delete_cookie(key="user_name")
-    # Видаляємо також роль користувача
     redirect.delete_cookie(key="user_role")
     return redirect
 
 
-# Додавання книги до кошика
+# додавання книги до кошика
 @app.post("/cart/add/{book_id}")
 async def add_to_cart(
         request: Request,
         book_id: int
 ):
-    # Отримуємо user_id з cookies
     user_id = request.cookies.get("user_id")
-
-    # Якщо користувач не залогінений, перенаправляємо на логін
     if not user_id:
         return RedirectResponse(url="/login", status_code=303)
 
     async with app.state.db.acquire() as conn:
-        # Перевіряємо, чи є книга вже в кошику
+        # перевірка, чи є книга вже в кошику
         existing_item = await conn.fetchrow(
-            "SELECT id, quantity FROM cart WHERE user_id = $1 AND book_id = $2;",
+            "SELECT id, quantity FROM cart WHERE user_id = $1 AND book_id = $2;", # після оформлення заказу таблиця cart очищується
             int(user_id), book_id
         )
 
         if existing_item:
-            # Збільшуємо кількість на 1
+            # збільшуємо кількість на 1
             await conn.execute(
                 "UPDATE cart SET quantity = quantity + 1 WHERE id = $1;",
                 existing_item['id']
             )
         else:
-            # Додаємо новий запис з quantity = 1
+            # додаємо новий запис з quantity = 1
             await conn.execute(
                 """
                 INSERT INTO cart (user_id, book_id, quantity)
@@ -346,22 +338,18 @@ async def add_to_cart(
                 int(user_id), book_id
             )
 
-    # Перенаправляємо назад на сторінку книги
     return RedirectResponse(url=f"/books/{book_id}", status_code=303)
 
 
-# Сторінка кошика
+# сторінка кошика
 @app.get("/cart", response_class=HTMLResponse)
 async def view_cart(request: Request):
-    # Отримуємо user_id з cookies
     user_id = request.cookies.get("user_id")
-
-    # Якщо користувач не залогінений, перенаправляємо на логін
     if not user_id:
         return RedirectResponse(url="/login", status_code=303)
 
     async with app.state.db.acquire() as conn:
-        # Отримуємо всі книги з кошика з інформацією про книгу
+        # отримуємо всі книги з кошика
         cart_items = await conn.fetch(
             """
             SELECT 
@@ -372,7 +360,7 @@ async def view_cart(request: Request):
                 b.price,
                 b.cover_path,
                 a.full_name as author_name,
-                (b.price * c.quantity) as total_price
+                (b.price * c.quantity) as total_price -- загальна вартість для книги з урахуванням кількості
             FROM cart c
             JOIN books b ON c.book_id = b.id
             JOIN authors a ON b.author_id = a.id
@@ -384,13 +372,13 @@ async def view_cart(request: Request):
 
         cart_list = [dict(item) for item in cart_items]
 
-        # Обчислюємо загальну вартість
+        # обчислення загальної вартості всіх книг у кошику
         total_cost = sum(item['total_price'] for item in cart_list)
 
-        # Загальна кількість книг
+        # загальна кількість книг
         total_items = sum(item['quantity'] for item in cart_list)
 
-        # Отримуємо історію замовлень користувача
+        # історія замовлень користувача
         orders = await conn.fetch(
             """
             SELECT 
@@ -400,7 +388,7 @@ async def view_cart(request: Request):
                 o.payment_status,
                 o.delivery_status,
                 p.payment_method,
-                COUNT(oi.id) as items_count
+                COUNT(oi.id) as items_count -- кількість книг, які були куплені в замовленні
             FROM orders o
             JOIN payments p ON p.order_id = o.id
             JOIN order_items oi ON oi.order_id = o.id
@@ -421,16 +409,15 @@ async def view_cart(request: Request):
     })
 
 
-# Видалення книги з кошика
+# видалення книги з кошика
 @app.post("/cart/remove/{cart_id}")
 async def remove_from_cart(request: Request, cart_id: int):
     user_id = request.cookies.get("user_id")
-
     if not user_id:
         return RedirectResponse(url="/login", status_code=303)
 
     async with app.state.db.acquire() as conn:
-        # Видаляємо товар з кошика (перевіряємо що він належить користувачу)
+        # видалення товару з кошика, та перевірка, що кошик належить поточному користувачу
         await conn.execute(
             "DELETE FROM cart WHERE id = $1 AND user_id = $2;",
             cart_id, int(user_id)
@@ -439,7 +426,7 @@ async def remove_from_cart(request: Request, cart_id: int):
     return RedirectResponse(url="/cart", status_code=303)
 
 
-# Оновлення кількості книг у кошику
+# оновлення кількості книг у кошику
 @app.post("/cart/update/{cart_id}")
 async def update_cart_quantity(
     request: Request,
